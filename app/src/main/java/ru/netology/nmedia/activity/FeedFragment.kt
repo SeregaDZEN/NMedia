@@ -2,8 +2,6 @@ package ru.netology.nmedia.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,7 +33,7 @@ class FeedFragment : Fragment() {
             }
 
             override fun onLike(post: Post) {
-                viewModel.like(post) //тут так и оставить ? Просто по названию больше подходит
+                viewModel.like(post)
             }
 
             override fun onRemove(post: Post) {
@@ -58,8 +56,8 @@ class FeedFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts()
-            val handler = Handler(Looper.getMainLooper())
-            handler.postDelayed({binding.swipeRefresh.isRefreshing = false}, 3000)
+//            val handler = Handler(Looper.getMainLooper())
+//            handler.postDelayed({binding.swipeRefresh.isRefreshing = false}, 3000)
 
 
         }
@@ -68,6 +66,7 @@ class FeedFragment : Fragment() {
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
             binding.progress.isVisible = state.loading
+            binding.swipeRefresh.isRefreshing = state.loading
             binding.errorGroup.isVisible = state.error
             binding.emptyText.isVisible = state.empty
         }

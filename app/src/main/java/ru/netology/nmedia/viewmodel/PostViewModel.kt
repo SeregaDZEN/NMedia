@@ -6,8 +6,6 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
-import java.io.IOException
-import kotlin.concurrent.thread
 
 private val empty = Post(
     id = 0,
@@ -24,7 +22,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _data = MutableLiveData(FeedModel())
     val data: LiveData<FeedModel>
         get() = _data
-    val edited = MutableLiveData(empty)
+    private val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
@@ -33,27 +31,98 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         loadPosts()
     }
 
-    fun loadPosts() {
-        thread {
-            // Начинаем загрузку
-            _data.postValue(FeedModel(loading = true))
-            try {
-                // Данные успешно получены
-                val posts = repository.getAll()
-                FeedModel(posts = posts, empty = posts.isEmpty())
-            } catch (e: IOException) {
-                // Получена ошибка
-                FeedModel(error = true)
-            }.also(_data::postValue)
+    fun removeById(id: Long) {
+
+        val old = _data.value?.posts.orEmpty()
+
+        _data.postValue(
+            _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                .filter { it.id != id }
+            )
+        )
+
+        val postDelRepo = object : PostRepository.RepositoryCallBack<Unit> {
+            override fun onSuccess(result: Unit) {
+            }
+
+            override fun onError(e: Throwable) {
+                _data.postValue(_data.value?.copy(posts = old, error = true))
+            }
         }
+
+        repository.removeById(id, postDelRepo)
     }
 
-    fun save() {
-        edited.value?.let {
-            thread {
-                repository.save(it)
-                _postCreated.postValue(Unit)
+    fun loadPosts() {
+
+
+        val dataRepo = object : PostRepository.RepositoryCallBack<List<Post>> {
+            override fun onError(throwable: Throwable) {
+                _data.postValue(FeedModel(error = true))
             }
+
+            override fun onSuccess(posts: List<Post>) {
+                _data.postValue((FeedModel(posts = posts, empty = posts.isEmpty())))
+            }
+        }
+        repository.getAllSync(dataRepo)
+    }
+
+
+//    fun save() {
+//
+//        val oldPosts = _data.value?.posts.orEmpty()
+//        val oldIdsList = oldPosts.map { it.id }
+//        val dataRepoSave = object : PostRepository.RepositoryCallBack<Post> {
+//            override fun onSuccess(result: Post) {
+//                val newPosts = if (oldIdsList.contains(result.id)) {
+//                    oldPosts.map { if (it.id == result.id) result else it }
+//                } else {
+//                    listOf(result) + oldPosts
+//                }
+//                _data.postValue(FeedModel(posts = newPosts, empty = newPosts.isEmpty()))
+//            }
+//
+//            override fun onError(throwable: Throwable) {
+//                _data.postValue(_data.value?.copy(posts = oldPosts, error = true))
+//            }
+//
+//        }
+//
+//        edited.value?.let {
+//
+//            repository.save(it, dataRepoSave)
+//            _postCreated.postValue(Unit)
+//
+//        }
+//        edited.value = empty
+//    }
+
+    fun save() {
+
+        val oldPosts = _data.value?.posts.orEmpty()
+        val dataRepoSave = object : PostRepository.RepositoryCallBack<Post> {
+            override fun onSuccess(result: Post) {
+                /**
+                можно ничего не делать, так как через обсерв будем наблюдать изменения и загружать данные с сервера
+                NewPostFragment ->   viewModel.postCreated.observe(viewLifecycleOwner) {
+                viewModel.loadPosts()
+                findNavController().navigateUp()
+                }
+                 */
+            }
+
+            override fun onError(throwable: Throwable) {
+                _data.postValue(_data.value?.copy(posts = oldPosts, error = true))
+            }
+
+        }
+
+        edited.value?.let {
+
+            repository.save(it, dataRepoSave)
+            _postCreated.postValue(Unit)
+
         }
         edited.value = empty
     }
@@ -71,38 +140,25 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun like(post: Post) {
-        thread {
-            val old = _data.value?.posts.orEmpty()
-            try {
-                val postLike = repository.likeById(post.id, post.likedByMe)
-                _data.postValue(
-                    _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                        .map { if (it.id == post.id) postLike else it }
-                    )
-                )
 
-            } catch (e: IOException) {
-                _data.postValue(_data.value?.copy(posts = old))
+        val old = _data.value?.posts.orEmpty()
+
+        repository.likeById(post.id, post.likedByMe,
+            object : PostRepository.RepositoryCallBack<Post> {
+                override fun onSuccess(result: Post) {
+                    _data.postValue(
+                        _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                            .map { if (it.id == result.id) result else it }
+                        ))
+                }
+
+                override fun onError(e: Throwable) {
+                    _data.postValue(_data.value?.copy(posts = old, error = true))
+                }
+
             }
-        }
-
-
+        )
     }
 
-    fun removeById(id: Long) {
-        thread {
-            // Оптимистичная модель
-            val old = _data.value?.posts.orEmpty()
-            _data.postValue(
-                _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                    .filter { it.id != id }
-                )
-            )
-            try {
-                repository.removeById(id)
-            } catch (e: IOException) {
-                _data.postValue(_data.value?.copy(posts = old))
-            }
-        }
-    }
+
 }
