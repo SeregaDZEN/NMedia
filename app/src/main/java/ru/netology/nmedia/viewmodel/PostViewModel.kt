@@ -13,7 +13,9 @@ private val empty = Post(
     author = "",
     likedByMe = false,
     likes = 0,
-    published = ""
+    published = "",
+    authorAvatar = ""
+
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
@@ -69,47 +71,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-//    fun save() {
-//
-//        val oldPosts = _data.value?.posts.orEmpty()
-//        val oldIdsList = oldPosts.map { it.id }
-//        val dataRepoSave = object : PostRepository.RepositoryCallBack<Post> {
-//            override fun onSuccess(result: Post) {
-//                val newPosts = if (oldIdsList.contains(result.id)) {
-//                    oldPosts.map { if (it.id == result.id) result else it }
-//                } else {
-//                    listOf(result) + oldPosts
-//                }
-//                _data.postValue(FeedModel(posts = newPosts, empty = newPosts.isEmpty()))
-//            }
-//
-//            override fun onError(throwable: Throwable) {
-//                _data.postValue(_data.value?.copy(posts = oldPosts, error = true))
-//            }
-//
-//        }
-//
-//        edited.value?.let {
-//
-//            repository.save(it, dataRepoSave)
-//            _postCreated.postValue(Unit)
-//
-//        }
-//        edited.value = empty
-//    }
-
     fun save() {
 
         val oldPosts = _data.value?.posts.orEmpty()
         val dataRepoSave = object : PostRepository.RepositoryCallBack<Post> {
             override fun onSuccess(result: Post) {
-                /**
-                можно ничего не делать, так как через обсерв будем наблюдать изменения и загружать данные с сервера
-                NewPostFragment ->   viewModel.postCreated.observe(viewLifecycleOwner) {
-                viewModel.loadPosts()
-                findNavController().navigateUp()
-                }
-                 */
             }
 
             override fun onError(throwable: Throwable) {

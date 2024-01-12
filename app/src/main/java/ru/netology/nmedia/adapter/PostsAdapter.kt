@@ -6,6 +6,7 @@ import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
@@ -44,6 +45,15 @@ class PostViewHolder(
             // в адаптере
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
+            val url = "http://10.0.2.2:9999/avatars/${post.authorAvatar}" // сервер хранит название нужной картинки в поле author
+            Glide
+                .with(binding.avatar)
+                .load(url) // откуда грузить
+                .timeout(15_000) // сколько максимум ждать
+                .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
+                .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
+                .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
+                .into(binding.avatar) // куда вставить
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {

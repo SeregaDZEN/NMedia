@@ -37,6 +37,7 @@ class PostRepositoryImpl : PostRepository {
             .enqueue(
                 object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
+
                         callBack.onError(e)
                     }
 
@@ -54,7 +55,6 @@ class PostRepositoryImpl : PostRepository {
                     }
                 }
             )
-
     }
 
     override fun likeById(
