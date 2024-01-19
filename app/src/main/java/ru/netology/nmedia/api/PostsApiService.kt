@@ -13,7 +13,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import ru.netology.nmedia.dto.Post
 
-private const val BASE_URL = "http://10.0.2.2:9999/api/slow"
+private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
 
 
 interface PostsApiService {
@@ -38,9 +38,9 @@ interface PostsApiService {
 
 
 val logger = HttpLoggingInterceptor().apply {
-    if (BuildConfig.DEBUG) {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
+ //   if (BuildConfig.DEBUG) {
+   level = HttpLoggingInterceptor.Level.BODY
+//    }
 
 }
 val client = OkHttpClient.Builder().addInterceptor(logger).build()

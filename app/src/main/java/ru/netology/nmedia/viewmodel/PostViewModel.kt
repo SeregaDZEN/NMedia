@@ -51,7 +51,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(e: Throwable) {
-                _data.postValue(_data.value?.copy(posts = old, error = true))
+                _data.postValue(_data.value?.copy(posts = old, error = true, errorMessage = "${e.message}"))
             }
         }
 
@@ -86,7 +86,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(e: Throwable) {
-                _data.value = _data.value?.copy(posts = oldPosts, error = true)
+                _data.value = _data.value?.copy(posts = oldPosts, error = true, errorMessage = "${e.message}")
             }
 
         }
@@ -123,7 +123,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 override fun onError(e: Throwable) {
-                    _data.postValue(_data.value?.copy(posts = old, error = true))
+
+                    _data.postValue(_data.value?.copy(posts = old, error = true, errorMessage = "${e.message}"))
+
                 }
 
             }

@@ -17,6 +17,7 @@ interface PostRepository {
     interface RepositoryCallBack<T> {
         fun onSuccess(result: T)
         fun onError(e: Throwable)
+
     }
 
 }
