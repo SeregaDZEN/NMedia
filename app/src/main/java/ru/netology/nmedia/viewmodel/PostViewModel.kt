@@ -11,10 +11,11 @@ private val empty = Post(
     id = 0,
     content = "",
     author = "",
+    authorAvatar = "",
+    published = 0,
     likedByMe = false,
     likes = 0,
-    published = "",
-    authorAvatar = ""
+    attachment = null
 
 )
 
@@ -31,9 +32,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadPosts()
+
     }
 
     fun removeById(id: Long) {
+
 
         val old = _data.value?.posts.orEmpty()
 
@@ -59,36 +62,37 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
 
         val dataRepo = object : PostRepository.RepositoryCallBack<List<Post>> {
-            override fun onError(throwable: Throwable) {
-                _data.postValue(FeedModel(error = true))
+            override fun onError(e: Throwable) {
+                _data.value = FeedModel(error = true)
             }
 
-            override fun onSuccess(posts: List<Post>) {
-                _data.postValue((FeedModel(posts = posts, empty = posts.isEmpty())))
+            override fun onSuccess(result: List<Post>) {
+                _data.value =(FeedModel(posts = result, empty = result.isEmpty()))
             }
         }
         repository.getAllSync(dataRepo)
+
     }
 
 
     fun save() {
 
         val oldPosts = _data.value?.posts.orEmpty()
-        val dataRepoSave = object : PostRepository.RepositoryCallBack<Post> {
-            override fun onSuccess(result: Post) {
+        val dataRepoSave = object : PostRepository.SaveCallBack<Post> {
+
+
+            override fun <U> onSuccess(result: U) {
+                _postCreated.value = Unit
             }
 
-            override fun onError(throwable: Throwable) {
-                _data.postValue(_data.value?.copy(posts = oldPosts, error = true))
+            override fun onError(e: Throwable) {
+                _data.value = _data.value?.copy(posts = oldPosts, error = true)
             }
 
         }
 
         edited.value?.let {
-
             repository.save(it, dataRepoSave)
-            _postCreated.postValue(Unit)
-
         }
         edited.value = empty
     }

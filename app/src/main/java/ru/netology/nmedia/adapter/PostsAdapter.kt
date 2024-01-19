@@ -3,6 +3,7 @@ package ru.netology.nmedia.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -40,20 +41,39 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            published.text = post.published
+            published.text = post.published.toString()
             content.text = post.content
             // в адаптере
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
-            val url = "http://10.0.2.2:9999/avatars/${post.authorAvatar}" // сервер хранит название нужной картинки в поле author
+            val url =
+                "http://10.0.2.2:9999/avatars/${post.authorAvatar}" // сервер хранит название нужной картинки в поле author
+
+            binding.attach.isVisible = post.attachment != null
+            if (post.attachment != null) {
+                Glide
+                    .with(binding.root)
+                    .load("http://10.0.2.2:9999/images/${post.attachment?.url}")// откуда грузить
+                    .timeout(15_000) // сколько максимум ждать
+                    .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
+                    .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
+                    // .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
+                    .into(binding.attach) // куда вставить
+            }
+
+
+
+
             Glide
-                .with(binding.avatar)
-                .load(url) // откуда грузить
+                .with(binding.root)
+                .load(url)
                 .timeout(15_000) // сколько максимум ждать
                 .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
                 .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
                 .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
                 .into(binding.avatar) // куда вставить
+
+
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
@@ -64,6 +84,7 @@ class PostViewHolder(
                                 onInteractionListener.onRemove(post)
                                 true
                             }
+
                             R.id.edit -> {
                                 onInteractionListener.onEdit(post)
                                 true
