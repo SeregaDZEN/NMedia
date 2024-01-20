@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -66,7 +67,11 @@ class FeedFragment : Fragment() {
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
             if (state.errorMessage.isNotEmpty()){
-                Snackbar.make(binding.root, state.errorMessage, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, state.errorMessage, Snackbar.LENGTH_INDEFINITE).setAction("ok"
+                ) {
+                    Toast.makeText(view?.context, "Кнопка нажата!", Toast.LENGTH_SHORT).show();
+                }.setAnchorView(binding.fab).show()
+
             }
             adapter.submitList(state.posts)
             binding.progress.isVisible = state.loading
