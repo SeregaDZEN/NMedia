@@ -32,6 +32,7 @@ class FeedFragment : Fragment() {
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
                viewModel.edit(post)
+
             }
 
             override fun onLike(post: Post) {
@@ -68,6 +69,8 @@ class FeedFragment : Fragment() {
         viewModel.data.observe(viewLifecycleOwner) { state ->
 
             adapter.submitList(state.posts)
+            val state = state.posts.size > adapter.currentList.size
+            if (state) binding.list.smoothScrollToPosition(0)
 
         }
 

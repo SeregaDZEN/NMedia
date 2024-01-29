@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.entity.PostEntityLocal
 
 @Dao
 interface PostDao {
@@ -22,4 +23,10 @@ interface PostDao {
 
     @Query("DELETE FROM PostEntity WHERE id = :id")
     suspend fun removeById(id: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLocal(post: PostEntityLocal)
+
+    @Query("DELETE FROM PostEntityLocal WHERE id = :id")
+    suspend fun removeByIdLocal(id: Long)
 }

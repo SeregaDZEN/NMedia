@@ -6,6 +6,7 @@ import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.entity.PostEntityLocal
 import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.error.ApiException
@@ -57,10 +58,13 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
         override suspend fun save(post: Post) {
             try {
+                dao.insertLocal(PostEntityLocal.fromDto(post))
+
                 val response =   PostApi.retrofitService.save(post)
                 if (!response.isSuccessful) throw ApiException (response.code(), response.message())
-
                 val body = response.body() ?: throw ApiException(response.code(), response.message())
+
+                dao.removeByIdLocal(post.id)
                 val post = PostEntity.fromDto(body)
                 dao.insert(post)
             } catch (e: IOException) {
