@@ -31,7 +31,7 @@ class FeedFragment : Fragment() {
 
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
-                viewModel.edit(post)
+               viewModel.edit(post)
             }
 
             override fun onLike(post: Post) {
@@ -66,6 +66,14 @@ class FeedFragment : Fragment() {
 
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
+
+            adapter.submitList(state.posts)
+
+        }
+
+
+        viewModel.dataState.observe(viewLifecycleOwner){state ->
+
             if (state.errorMessage.isNotEmpty()){
                 Snackbar.make(binding.root, state.errorMessage, Snackbar.LENGTH_INDEFINITE).setAction("ok"
                 ) {
@@ -73,15 +81,15 @@ class FeedFragment : Fragment() {
                 }.setAnchorView(binding.fab).show()
 
             }
-            adapter.submitList(state.posts)
+            if (state.error){
+                Snackbar.make(binding.root, "ошибка сети", Snackbar.LENGTH_INDEFINITE).setAction("retry"){
+                    viewModel.loadPosts()
+                }.setAnchorView(binding.fab).show()
+            }
             binding.progress.isVisible = state.loading
             binding.swipeRefresh.isRefreshing = state.loading
-            binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible = state.empty
-        }
 
-        binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
+
         }
 
         binding.fab.setOnClickListener {
