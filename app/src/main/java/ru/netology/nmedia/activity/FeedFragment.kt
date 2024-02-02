@@ -62,16 +62,19 @@ class FeedFragment : Fragment() {
 //            val handler = Handler(Looper.getMainLooper())
 //            handler.postDelayed({binding.swipeRefresh.isRefreshing = false}, 3000)
 
-
         }
+
 
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
 
             adapter.submitList(state.posts)
-            val state = state.posts.size > adapter.currentList.size
-            if (state) binding.list.smoothScrollToPosition(0)
+            val newPost = state.posts.size > adapter.currentList.size && adapter.itemCount > 0
+            if (newPost) binding.list.smoothScrollToPosition(0)
 
+        }
+        viewModel.newerCount.observe(viewLifecycleOwner){
+            println(it)
         }
 
 
@@ -100,5 +103,7 @@ class FeedFragment : Fragment() {
         }
 
         return binding.root
+
     }
+
 }
