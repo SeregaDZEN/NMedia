@@ -7,7 +7,8 @@ data class Post(
     val authorAvatar: String = "",
     val published: Long,
     val likedByMe: Boolean,
-    val likes: Int = 0,
+    val hide: Boolean,
+    val likes: Int,
     var attachment: Attachment? = null,
 )
 

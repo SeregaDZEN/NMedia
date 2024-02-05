@@ -46,6 +46,7 @@ class PostViewHolder(
             // в адаптере
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
+
             val url =
                 "http://10.0.2.2:9999/avatars/${post.authorAvatar}" // сервер хранит название нужной картинки в поле author
 

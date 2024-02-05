@@ -16,6 +16,7 @@ import ru.netology.nmedia.entity.PostEntityLocal
 import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.error.ApiError
+import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
@@ -43,6 +44,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     }
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {
+
         while (true) {
             delay(10_000L)
             val response = PostApi.retrofitService.getNewerCount(id)
@@ -50,11 +52,12 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert2(body.toEntity())
-            emit(body.size)
+            val copyBody = body.map { it.copy(hide = true) }
+            dao.insert2(copyBody.toEntity())
+            emit(dao.countHidden())
 
         }
-    }.catch { it.printStackTrace() }
+    }.catch { e -> throw AppError.from(e) }
         .flowOn(Dispatchers.Default)
 
     override suspend fun likeById(id: Long) {

@@ -9,6 +9,7 @@ interface PostRepository {
     val dataRepo : Flow<List<Post>>
     fun getNewerCount (id: Long) : Flow<Int>
     suspend fun getAll()
+
     suspend fun save(post: Post)
     suspend fun likeById(id: Long)
     suspend fun removeById(id: Long)

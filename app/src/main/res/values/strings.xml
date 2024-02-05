@@ -20,4 +20,7 @@
     <string name="notification_user_liked">User %1$s liked %2$s\'s post</string>
     <string name="channel_remote_name">Server notifications</string>
     <string name="channel_remote_description">Notifications from remote server</string>
+    <string name="recent_entries">↑ Recent Entries</string>
+    <string name="news">News</string>
+    <string name="todo">TODO</string>
 </resources>

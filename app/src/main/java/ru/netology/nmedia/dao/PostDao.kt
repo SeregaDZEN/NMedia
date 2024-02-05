@@ -16,6 +16,10 @@ interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(post: PostEntity)
 
+    @Query("SELECT COUNT(*) FROM PostEntity WHERE hide = 1")
+    suspend fun countHidden(): Int
+
+
     @Query(
         """
            UPDATE PostEntity SET

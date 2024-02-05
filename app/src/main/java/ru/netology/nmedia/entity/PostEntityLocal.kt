@@ -7,6 +7,7 @@ import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Post
 
 @Entity
+
 data class PostEntityLocal(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
@@ -15,15 +16,16 @@ data class PostEntityLocal(
     val authorAvatar: String,
     val published: Long,
     val likedByMe: Boolean,
+    val hide: Boolean,
     val likes: Int = 0,
     @Embedded
-    val attachment: Attachment?,
+    val attachment: Attachment?
 ) {
-    fun toDto() = Post(id, content,author,authorAvatar, published,  likedByMe, likes,attachment)
+    fun toDto() = Post(id, content,author,authorAvatar, published,  likedByMe,hide, likes,attachment)
 
     companion object {
         fun fromDto(dto: Post) =
-            PostEntityLocal(dto.id, dto.content,dto.author, dto.authorAvatar, dto.published, dto.likedByMe, dto.likes,dto.attachment)
+            PostEntityLocal(dto.id, dto.content,dto.author, dto.authorAvatar, dto.published, dto.likedByMe,dto.hide, dto.likes,dto.attachment)
 
     }
 }

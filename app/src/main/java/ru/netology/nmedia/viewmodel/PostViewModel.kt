@@ -26,6 +26,7 @@ private val empty = Post(
     authorAvatar = "",
     published = 0,
     likedByMe = false,
+    hide = false,
     likes = 0,
     attachment = null
 
@@ -41,6 +42,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val newerCount = data.switchMap { repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L ).catch { _dataState.postValue(
         FeedModelState(error = true)
     ) }.asLiveData(Dispatchers.Default, 100)}
+
+    
 
     val dataState: LiveData<FeedModelState>
         get() = _dataState

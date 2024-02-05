@@ -31,7 +31,7 @@ class FeedFragment : Fragment() {
 
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
-               viewModel.edit(post)
+                viewModel.edit(post)
 
             }
 
@@ -65,32 +65,50 @@ class FeedFragment : Fragment() {
         }
 
 
+        binding.buttonScroll.setOnClickListener {
+            binding.buttonScroll.visibility = View.GONE
+            binding.bell.visibility = View.GONE
+            binding.countPost.text = ""
+        }
+
+
+        viewModel.newerCount.observe(viewLifecycleOwner) { postCount ->
+            if (postCount > 0) {
+                binding.buttonScroll.visibility = View.VISIBLE
+                binding.countPost.text = postCount.toString()
+                binding.bell.visibility = View.VISIBLE
+            } else binding.buttonScroll.visibility = View.GONE
+
+        }
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
 
             adapter.submitList(state.posts)
             val newPost = state.posts.size > adapter.currentList.size && adapter.itemCount > 0
             if (newPost) binding.list.smoothScrollToPosition(0)
+            binding.buttonScroll.visibility = View.VISIBLE
+            binding.bell.visibility = View.VISIBLE
 
         }
-        viewModel.newerCount.observe(viewLifecycleOwner){
-            println(it)
-        }
 
 
-        viewModel.dataState.observe(viewLifecycleOwner){state ->
+        viewModel.dataState.observe(viewLifecycleOwner) { state ->
 
-            if (state.errorMessage.isNotEmpty()){
-                Snackbar.make(binding.root, state.errorMessage, Snackbar.LENGTH_INDEFINITE).setAction("ok"
-                ) {
-                    Toast.makeText(view?.context, "Кнопка нажата!", Toast.LENGTH_SHORT).show();
-                }.setAnchorView(binding.fab).show()
+            if (state.errorMessage.isNotEmpty()) {
+                Snackbar.make(binding.root, state.errorMessage, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(
+                        "ok"
+                    ) {
+                        Toast.makeText(view?.context, "Кнопка нажата!", Toast.LENGTH_SHORT)
+                            .show()
+                    }.setAnchorView(binding.fab).show()
 
             }
-            if (state.error){
-                Snackbar.make(binding.root, "ошибка сети", Snackbar.LENGTH_INDEFINITE).setAction("retry"){
-                    viewModel.loadPosts()
-                }.setAnchorView(binding.fab).show()
+            if (state.error) {
+                Snackbar.make(binding.root, "ошибка сети", Snackbar.LENGTH_LONG)
+                    .setAction("retry") {
+                        viewModel.loadPosts()
+                    }.setAnchorView(binding.fab).show()
             }
             binding.progress.isVisible = state.loading
             binding.swipeRefresh.isRefreshing = state.loading
