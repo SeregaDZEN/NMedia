@@ -101,6 +101,10 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         }
     }
 
+    override suspend fun showAll (){
+        dao.showAll()
+    }
+
 
     override suspend fun removeById(id: Long) {
         try {

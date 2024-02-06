@@ -20,6 +20,11 @@ interface PostDao {
     suspend fun countHidden(): Int
 
 
+
+    @Query("UPDATE PostEntity SET hide = 1")
+    suspend fun showAll()
+
+
     @Query(
         """
            UPDATE PostEntity SET

@@ -43,6 +43,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         FeedModelState(error = true)
     ) }.asLiveData(Dispatchers.Default, 100)}
 
+    fun showAll() {
+        viewModelScope.launch { repository.showAll() }
+    }
+
     
 
     val dataState: LiveData<FeedModelState>

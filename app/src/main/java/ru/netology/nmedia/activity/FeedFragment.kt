@@ -19,6 +19,8 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class FeedFragment : Fragment() {
+    private var previousPostCount = 0
+
 
     private val viewModel: PostViewModel by activityViewModels()
 
@@ -65,31 +67,56 @@ class FeedFragment : Fragment() {
         }
 
 
-        binding.buttonScroll.setOnClickListener {
+            binding.buttonScroll.setOnClickListener {
+            binding.list.smoothScrollToPosition(0)
             binding.buttonScroll.visibility = View.GONE
             binding.bell.visibility = View.GONE
-            binding.countPost.text = ""
+            binding.countPost.visibility = View.GONE
+            viewModel.showAll()
+
+            previousPostCount = adapter.itemCount
+
         }
 
-
+        /**
+        следит за кол-вом СКРЫТЫХ постов ( указывая их кол-во)
+         */
         viewModel.newerCount.observe(viewLifecycleOwner) { postCount ->
-            if (postCount > 0) {
-                binding.buttonScroll.visibility = View.VISIBLE
-                binding.countPost.text = postCount.toString()
-                binding.bell.visibility = View.VISIBLE
-            } else binding.buttonScroll.visibility = View.GONE
-
+//            if (postCount > 0) {
+//                count++
+//                //    viewModel.showAll()
+//                //        binding.buttonScroll.visibility = View.VISIBLE
+//                binding.bell.visibility = View.VISIBLE
+//                binding.countPost.visibility = View.VISIBLE
+//                  //   binding.countPost.text = count.toString()
+//            }
         }
 
+        /**
+        следит за добавлением ВСЕХ постов
+         */
         viewModel.data.observe(viewLifecycleOwner) { state ->
-
+            // 1. Обновляем адаптер с новыми данными
             adapter.submitList(state.posts)
-            val newPost = state.posts.size > adapter.currentList.size && adapter.itemCount > 0
-            if (newPost) binding.list.smoothScrollToPosition(0)
-            binding.buttonScroll.visibility = View.VISIBLE
-            binding.bell.visibility = View.VISIBLE
 
+            // 2. Текущее количество отображаемых постов
+            val currentPostCount = state.posts.size
+
+            // Вычисляем количество новых постов на основе обновленного списка
+            val newPostCount = currentPostCount - previousPostCount
+
+            // 3. Обновляем пользовательский интерфейс, если есть новые посты
+            if (newPostCount > 0) {
+                binding.buttonScroll.visibility = View.VISIBLE
+                binding.bell.visibility = View.VISIBLE
+                binding.countPost.visibility = View.VISIBLE
+                binding.countPost.text = newPostCount.toString()
+            }
+
+            // 4. Обновляем предыдущее количество постов для использования в следующем цикле наблюдения
+            previousPostCount = currentPostCount
         }
+
 
 
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
