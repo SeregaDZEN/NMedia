@@ -10,6 +10,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -19,8 +20,6 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class FeedFragment : Fragment() {
-    private var previousPostCount = 0
-
 
     private val viewModel: PostViewModel by activityViewModels()
 
@@ -61,60 +60,46 @@ class FeedFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts()
-//            val handler = Handler(Looper.getMainLooper())
-//            handler.postDelayed({binding.swipeRefresh.isRefreshing = false}, 3000)
+        }
 
+        val insertToTopListener = object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                if (positionStart == 0) {
+                    binding.list.smoothScrollToPosition(0)
+                    // Дело сделано, удаляем слушатель до следующего клика, чтобы не было лишних скроллов
+                    adapter.unregisterAdapterDataObserver(this)
+                }
+            }
         }
 
 
-            binding.buttonScroll.setOnClickListener {
+        binding.buttonScroll.setOnClickListener {
             binding.list.smoothScrollToPosition(0)
             binding.buttonScroll.visibility = View.GONE
             binding.bell.visibility = View.GONE
             binding.countPost.visibility = View.GONE
             viewModel.showAll()
-
-            previousPostCount = adapter.itemCount
-
+            // Ждём, когда разница между новым и старым списком рассчитается
+            adapter.registerAdapterDataObserver(insertToTopListener)
         }
 
         /**
         следит за кол-вом СКРЫТЫХ постов ( указывая их кол-во)
          */
         viewModel.newerCount.observe(viewLifecycleOwner) { postCount ->
-//            if (postCount > 0) {
-//                count++
-//                //    viewModel.showAll()
-//                //        binding.buttonScroll.visibility = View.VISIBLE
-//                binding.bell.visibility = View.VISIBLE
-//                binding.countPost.visibility = View.VISIBLE
-//                  //   binding.countPost.text = count.toString()
-//            }
-        }
-
-        /**
-        следит за добавлением ВСЕХ постов
-         */
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            // 1. Обновляем адаптер с новыми данными
-            adapter.submitList(state.posts)
-
-            // 2. Текущее количество отображаемых постов
-            val currentPostCount = state.posts.size
-
-            // Вычисляем количество новых постов на основе обновленного списка
-            val newPostCount = currentPostCount - previousPostCount
-
-            // 3. Обновляем пользовательский интерфейс, если есть новые посты
-            if (newPostCount > 0) {
+            if (postCount > 0) {
                 binding.buttonScroll.visibility = View.VISIBLE
                 binding.bell.visibility = View.VISIBLE
                 binding.countPost.visibility = View.VISIBLE
-                binding.countPost.text = newPostCount.toString()
+                binding.countPost.text = postCount.toString()
             }
+        }
 
-            // 4. Обновляем предыдущее количество постов для использования в следующем цикле наблюдения
-            previousPostCount = currentPostCount
+        /**
+        следит за добавлением ВСЕХ постов (КРОМЕ СКРЫТЫХ!!!)
+         */
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            adapter.submitList(state.posts)
         }
 
 

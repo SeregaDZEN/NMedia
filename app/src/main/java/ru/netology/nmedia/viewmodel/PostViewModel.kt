@@ -37,11 +37,22 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(application).postDao())
     private val _dataState = MutableLiveData(FeedModelState())
-    val data: LiveData<FeedModel> = repository.dataRepo.map(::FeedModel).catch { it.printStackTrace() }.asLiveData(Dispatchers.Default)
 
-    val newerCount = data.switchMap { repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L ).catch { _dataState.postValue(
-        FeedModelState(error = true)
-    ) }.asLiveData(Dispatchers.Default, 100)}
+    val data: LiveData<FeedModel> = repository.dataRepo .map { posts ->
+        // Фильтруем только видимые
+        posts.filter { !it.hide }
+    }.map(::FeedModel).catch { it.printStackTrace() }.asLiveData(Dispatchers.Default)
+
+
+    // А здесь берём все посты в т.ч. скрытые для запроса новых с сервера
+    val newerCount = repository.dataRepo.asLiveData()
+        .switchMap {
+            repository.getNewerCount(it.firstOrNull()?.id ?: 0L).catch {
+                _dataState.postValue(
+                    FeedModelState(error = true)
+                )
+            }.asLiveData(Dispatchers.Default, 100)
+        }
 
     fun showAll() {
         viewModelScope.launch { repository.showAll() }
