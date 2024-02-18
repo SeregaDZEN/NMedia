@@ -6,30 +6,77 @@
     android:layout_height="match_parent"
     tools:context=".activity.NewPostFragment">
 
-    <EditText
-        android:id="@+id/edit"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="start|top"
-        android:inputType="textMultiLine"
-        android:background="@android:color/transparent"
-        />
+        android:layout_height="wrap_content">
 
-    <com.google.android.material.bottomappbar.BottomAppBar
+        <LinearLayout
+            android:paddingBottom="?attr/actionBarSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/edit"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:gravity="start|top"
+                android:inputType="textMultiLine"
+                android:padding="@dimen/common_spacing"
+                tools:text="@tools:sample/lorem[30]" />
+
+            <FrameLayout
+                android:visibility="gone"
+                android:id="@+id/previewContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    tools:srcCompat="@tools:sample/avatars[3]"
+                    android:contentDescription="preview" />
+
+                <Button
+                    android:id="@+id/clear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:text="@string/clear" />
+
+
+            </FrameLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
-        />
+        android:background="?colorPrimary"
+        android:orientation="horizontal">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/ok"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/description_post_save"
-        app:srcCompat="@drawable/ic_ok_24dp"
-        app:layout_anchor="@id/bottomAppBar"
-        />
+        <Button
+            android:id="@+id/takePhoto"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/icon_camera_24"
+            app:iconTint="?colorOnPrimary" />
+
+        <Button
+            android:id="@+id/getGallery"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/icon_photo"
+            app:iconTint="?colorOnPrimary" />
+
+    </LinearLayout>
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -22,5 +22,8 @@
     <string name="channel_remote_name">Уведомления с сервера</string>
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="recent_entries">" ↑ Свежие записи"</string>
+    <string name="news">новое</string>
+    <string name="clear">очистить</string>
+    <string name="no_intent">нет такого намерения</string>
 
 </resources>

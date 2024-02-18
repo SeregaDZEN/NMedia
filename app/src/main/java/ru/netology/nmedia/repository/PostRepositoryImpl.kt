@@ -8,8 +8,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dto.Attachment
+import ru.netology.nmedia.dto.AttachmentType
+import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.PostEntityLocal
@@ -19,6 +24,8 @@ import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
+import ru.netology.nmedia.model.PhotoModel
+import java.io.File
 import java.io.IOException
 
 
@@ -42,6 +49,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             throw e
         }
     }
+
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {
 
@@ -81,11 +89,16 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     }
 
-    override suspend fun save(post: Post) {
+    override suspend fun save(post: Post, photo: PhotoModel?) {
         try {
+
+           val postWithAttachment =  if (photo != null) {
+                val media = upload(photo.file)
+                post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
+            } else post
             dao.insertLocal(PostEntityLocal.fromDto(post))
 
-            val response = PostApi.retrofitService.save(post)
+            val response = PostApi.retrofitService.save(postWithAttachment)
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val body = response.body() ?: throw ApiError(response.code(), response.message())
 
@@ -101,8 +114,23 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         }
     }
 
-    override suspend fun showAll (){
+    private suspend fun upload(file: File): Media {
+        return PostApi.retrofitService.upload(
+            MultipartBody.Part.createFormData(
+                "file",
+                file.name,
+                file.asRequestBody()
+            )
+
+        )
+    }
+
+    override suspend fun showAll() {
         dao.showAll()
+    }
+
+    override suspend fun refreshHide() {
+        dao.refreshHide(state = true, oppositeState = false)
     }
 
 

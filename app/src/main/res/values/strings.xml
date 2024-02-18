@@ -22,5 +22,7 @@
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="recent_entries">↑ Recent Entries</string>
     <string name="news">News</string>
-    <string name="todo">TODO</string>
+    <string name="todo" translatable="false">TODO</string>
+    <string name="clear">clear</string>
+    <string name="no_intent">no_such_intention</string>
 </resources>

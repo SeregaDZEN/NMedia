@@ -62,7 +62,16 @@ class PostViewHolder(
                     .into(binding.attach) // куда вставить
             }
 
-
+            if (post.attachment?.url != null){ // хрень наделал!!! если что удалить
+                Glide
+                    .with(binding.root)
+                    .load("http://10.0.2.2:9999/media/${post.attachment?.url}")// откуда грузить
+                    .timeout(15_000) // сколько максимум ждать
+                    .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
+                    .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
+                    // .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
+                    .into(binding.attach) // куда вставить
+            }
 
 
             Glide

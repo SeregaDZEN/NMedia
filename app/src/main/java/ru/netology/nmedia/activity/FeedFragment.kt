@@ -9,15 +9,18 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
+import  ru.netology.nmedia.repository.*
 
 class FeedFragment : Fragment() {
 
@@ -79,8 +82,10 @@ class FeedFragment : Fragment() {
             binding.bell.visibility = View.GONE
             binding.countPost.visibility = View.GONE
             viewModel.showAll()
+
             // Ждём, когда разница между новым и старым списком рассчитается
             adapter.registerAdapterDataObserver(insertToTopListener)
+
         }
 
         /**

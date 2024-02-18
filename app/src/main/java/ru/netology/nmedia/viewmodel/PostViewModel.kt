@@ -15,6 +15,7 @@ import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
+import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
@@ -38,7 +39,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         PostRepositoryImpl(AppDb.getInstance(application).postDao())
     private val _dataState = MutableLiveData(FeedModelState())
 
-    val data: LiveData<FeedModel> = repository.dataRepo .map { posts ->
+    val data: LiveData<FeedModel> = repository.dataRepo.map { posts ->
         // Фильтруем только видимые
         posts.filter { !it.hide }
     }.map(::FeedModel).catch { it.printStackTrace() }.asLiveData(Dispatchers.Default)
@@ -54,12 +55,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }.asLiveData(Dispatchers.Default, 100)
         }
 
-    fun showAll() {
-        viewModelScope.launch { repository.showAll() }
-    }
 
-    
 
+    private val _photo = MutableLiveData<PhotoModel?>(null)
+    val photo: LiveData<PhotoModel?>
+        get() = _photo
     val dataState: LiveData<FeedModelState>
         get() = _dataState
     private val edited: MutableLiveData<Post> = MutableLiveData(empty)
@@ -71,6 +71,22 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         loadPosts()
 
     }
+
+    fun savePhoto(photoModel: PhotoModel) {
+        _photo.value = photoModel
+    }
+    fun clear (){
+        _photo.value = null
+    }
+
+    fun showAll() {
+        viewModelScope.launch { repository.showAll() }
+    }
+
+    fun refreshHide() {
+        viewModelScope.launch { repository.refreshHide() }
+    }
+
 
     fun removeById(id: Long) {
         viewModelScope.launch {
@@ -92,7 +108,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun save() {
 
         viewModelScope.launch {
-            edited.value?.let { repository.save(it) }
+            edited.value?.let { repository.save(it, _photo.value) }
         }
         edited.value = empty
     }

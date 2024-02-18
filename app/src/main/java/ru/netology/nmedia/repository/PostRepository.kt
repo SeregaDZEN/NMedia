@@ -3,8 +3,13 @@ package ru.netology.nmedia.repository
 
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.PhotoModel
+
 
 interface PostRepository {
+
+
+    suspend fun refreshHide()
 
     suspend fun showAll()
 
@@ -12,7 +17,7 @@ interface PostRepository {
     fun getNewerCount(id: Long): Flow<Int>
     suspend fun getAll()
 
-    suspend fun save(post: Post)
+    suspend fun save(post: Post, photo: PhotoModel?)
     suspend fun likeById(id: Long)
     suspend fun removeById(id: Long)
 
