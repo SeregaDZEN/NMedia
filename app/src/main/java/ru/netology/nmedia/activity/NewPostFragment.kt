@@ -95,12 +95,10 @@ class NewPostFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
                 when (menuItem.itemId) {
                     R.id.save -> {
-                        binding?.let{
                             viewModel.changeContent(binding.edit.text.toString())
                             viewModel.save()
                             AndroidUtils.hideKeyboard(requireView())
                             findNavController().navigateUp()
-                        }
                         true
                     }
                     else -> false

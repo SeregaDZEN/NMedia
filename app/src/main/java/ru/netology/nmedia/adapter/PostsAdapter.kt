@@ -3,12 +3,16 @@ package ru.netology.nmedia.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.PhotoFragment
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 
@@ -34,7 +38,7 @@ class PostsAdapter(
 }
 
 class PostViewHolder(
-    private val binding: CardPostBinding,
+        private val binding: CardPostBinding,
     private val onInteractionListener: OnInteractionListener,
 ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -50,6 +54,19 @@ class PostViewHolder(
             val url =
                 "http://10.0.2.2:9999/avatars/${post.authorAvatar}" // сервер хранит название нужной картинки в поле author
 
+            val urlPhoto = "http://10.0.2.2:9999/media/63dada2d-dd9e-45d3-9ba5-4c894dbdfd61.jpg"
+
+            binding.attach.setOnClickListener{
+              //  findNavController().navigate(R.id.action_feedFragment_to_photoFragment)
+
+                val fullScreenFragment = PhotoFragment.newInstance(urlPhoto)
+                val fragmentManager = (binding.root.context as AppCompatActivity).supportFragmentManager
+                fragmentManager.beginTransaction()
+                    .replace(R.id.containerCardPhoto, fullScreenFragment)
+                    .addToBackStack(null) // Добавляем транзакцию в back stack
+                    .commit()
+            }
+
             binding.attach.isVisible = post.attachment != null
             if (post.attachment != null) {
                 Glide
@@ -62,16 +79,22 @@ class PostViewHolder(
                     .into(binding.attach) // куда вставить
             }
 
-            if (post.attachment?.url != null){ // хрень наделал!!! если что удалить
+
+
+
+
+
+          //  if (post.attachment?.url != null){ // хрень наделал!!! если что удалить
                 Glide
                     .with(binding.root)
-                    .load("http://10.0.2.2:9999/media/${post.attachment?.url}")// откуда грузить
+                    .load(urlPhoto)// откуда грузить
                     .timeout(15_000) // сколько максимум ждать
                     .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
                     .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
-                    // .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
+                     .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
                     .into(binding.attach) // куда вставить
-            }
+         //   }
+
 
 
             Glide

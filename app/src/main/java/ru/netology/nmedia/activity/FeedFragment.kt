@@ -65,6 +65,7 @@ class FeedFragment : Fragment() {
             viewModel.loadPosts()
         }
 
+
         val insertToTopListener = object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 if (positionStart == 0) {
