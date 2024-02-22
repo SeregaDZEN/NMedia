@@ -27,8 +27,6 @@
         tools:layout_editor_absoluteX="0dp">
 
 
-
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list"
             android:layout_width="match_parent"
@@ -37,7 +35,21 @@
             android:scrollbars="vertical"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <ImageView
+        android:id="@+id/scrollTop"
+        android:visibility="gone"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/icon_scroll_top"
+        app:layout_constraintBottom_toTopOf="@id/fab"
+        android:layout_marginStart="@dimen/common_spacing"
+        android:layout_marginBottom="@dimen/common_spacing"
+        app:layout_constraintEnd_toEndOf="@+id/fab"
+        app:layout_constraintStart_toStartOf="@+id/fab"
+        android:contentDescription="scroll_top" />
 
     <TextView
         android:id="@+id/button_scroll"

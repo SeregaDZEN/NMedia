@@ -87,6 +87,36 @@ class FeedFragment : Fragment() {
             }
         }
 
+        binding.list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            // Вы можете определить переменную для хранения предыдущего состояния прокрутки
+            private var previousScrollY = 0
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                // Получаем текущую позицию прокрутки
+                val currentScrollY = recyclerView.computeVerticalScrollOffset()
+
+                // Проверяем, двигается ли список вверх
+                if (currentScrollY < previousScrollY && currentScrollY > 0) {
+                    // Показываем кнопку
+                    binding.scrollTop.visibility = View.VISIBLE
+                } else if (currentScrollY >= previousScrollY) {
+                    // Скрываем кнопку
+                    binding.scrollTop.visibility = View.GONE
+                }
+
+                // Обновляем предыдущее состояние прокрутки
+                previousScrollY = currentScrollY
+            }
+        })
+
+
+        binding.scrollTop.setOnClickListener{ it: View ->
+            binding.list.smoothScrollToPosition(0)
+            it.visibility = View.GONE
+
+        }
+
 
 
         binding.buttonScroll.setOnClickListener {
