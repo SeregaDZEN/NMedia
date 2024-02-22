@@ -15,12 +15,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
 import  ru.netology.nmedia.repository.*
+import java.net.HttpURLConnection
 
 class FeedFragment : Fragment() {
 
@@ -33,7 +35,13 @@ class FeedFragment : Fragment() {
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
-        val adapter = PostsAdapter(object : OnInteractionListener {
+        val adapter = PostsAdapter(object : OnInteractionListener{
+
+            override fun bigPhoto(url : String) {
+                val args = Bundle()
+                args.putString("image_url", url)
+               findNavController().navigate(R.id.action_feedFragment_to_photoFragment, args)
+            }
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
 
@@ -58,14 +66,17 @@ class FeedFragment : Fragment() {
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
             }
-        })
+        }, )
         binding.list.adapter = adapter
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts()
         }
 
+/**
 
+
+ */
         val insertToTopListener = object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 if (positionStart == 0) {
@@ -75,6 +86,7 @@ class FeedFragment : Fragment() {
                 }
             }
         }
+
 
 
         binding.buttonScroll.setOnClickListener {

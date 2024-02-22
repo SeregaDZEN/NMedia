@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
@@ -79,6 +80,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _photo.value = null
     }
 
+
     fun showAll() {
         viewModelScope.launch { repository.showAll() }
     }
@@ -135,10 +137,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 _dataState.value = FeedModelState(error = true)
             }
-
         }
-
     }
+
 }
 
 

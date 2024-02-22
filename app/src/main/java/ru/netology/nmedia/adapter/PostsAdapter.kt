@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
@@ -21,6 +22,7 @@ interface OnInteractionListener {
     fun onEdit(post: Post) {}
     fun onRemove(post: Post) {}
     fun onShare(post: Post) {}
+    fun bigPhoto(url: String) {}
 }
 
 class PostsAdapter(
@@ -38,7 +40,7 @@ class PostsAdapter(
 }
 
 class PostViewHolder(
-        private val binding: CardPostBinding,
+    private val binding: CardPostBinding,
     private val onInteractionListener: OnInteractionListener,
 ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -54,48 +56,26 @@ class PostViewHolder(
             val url =
                 "http://10.0.2.2:9999/avatars/${post.authorAvatar}" // сервер хранит название нужной картинки в поле author
 
-            val urlPhoto = "http://10.0.2.2:9999/media/63dada2d-dd9e-45d3-9ba5-4c894dbdfd61.jpg"
 
-            binding.attach.setOnClickListener{
-              //  findNavController().navigate(R.id.action_feedFragment_to_photoFragment)
+            val urlPhoto =
+                if (post.attachment != null) "http://10.0.2.2:9999/media/${post.attachment?.url}" else "http://10.0.2.2:9999/media/58b15829-071e-4b38-bf4f-918dda27325c.jpg"
 
-                val fullScreenFragment = PhotoFragment.newInstance(urlPhoto)
-                val fragmentManager = (binding.root.context as AppCompatActivity).supportFragmentManager
-                fragmentManager.beginTransaction()
-                    .replace(R.id.containerCardPhoto, fullScreenFragment)
-                    .addToBackStack(null) // Добавляем транзакцию в back stack
-                    .commit()
+            binding.attach.setOnClickListener {
+                onInteractionListener.bigPhoto(urlPhoto)
             }
+
 
             binding.attach.isVisible = post.attachment != null
             if (post.attachment != null) {
-                Glide
-                    .with(binding.root)
-                    .load("http://10.0.2.2:9999/images/${post.attachment?.url}")// откуда грузить
-                    .timeout(15_000) // сколько максимум ждать
-                    .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
-                    .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
-                    // .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
-                    .into(binding.attach) // куда вставить
-            }
-
-
-
-
-
-
-          //  if (post.attachment?.url != null){ // хрень наделал!!! если что удалить
                 Glide
                     .with(binding.root)
                     .load(urlPhoto)// откуда грузить
                     .timeout(15_000) // сколько максимум ждать
                     .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
                     .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
-                     .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
+                    .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
                     .into(binding.attach) // куда вставить
-         //   }
-
-
+            }
 
             Glide
                 .with(binding.root)
@@ -105,7 +85,6 @@ class PostViewHolder(
                 .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
                 .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
                 .into(binding.avatar) // куда вставить
-
 
 
             menu.setOnClickListener {

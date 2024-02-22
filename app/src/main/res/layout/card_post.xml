@@ -12,6 +12,8 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/common_spacing">
 
+
+
         <ImageView
             android:id="@+id/avatar"
             android:layout_width="@dimen/posts_avatar_size"
@@ -133,6 +135,8 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <FrameLayout
+
+
         android:id="@+id/containerCardPhoto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
