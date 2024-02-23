@@ -26,6 +26,10 @@ import java.net.HttpURLConnection
 
 class FeedFragment : Fragment() {
 
+    private var isButtonClicked = false
+
+
+
     private val viewModel: PostViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -88,32 +92,43 @@ class FeedFragment : Fragment() {
         }
 
         binding.list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            // Вы можете определить переменную для хранения предыдущего состояния прокрутки
             private var previousScrollY = 0
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                // Получаем текущую позицию прокрутки
                 val currentScrollY = recyclerView.computeVerticalScrollOffset()
 
-                // Проверяем, двигается ли список вверх
-                if (currentScrollY < previousScrollY && currentScrollY > 0) {
-                    // Показываем кнопку
-                    binding.scrollTop.visibility = View.VISIBLE
+                // Показываем кнопку только если прокрутка идёт вверх, и кнопка не была нажата
+                if (!isButtonClicked && currentScrollY < previousScrollY && currentScrollY > 0) {
+                    // Задержка поможет избежать моргания кнопки при быстрой прокрутке вниз
+                    binding.scrollTop.postDelayed({
+                        if (!isButtonClicked) {
+                            binding.scrollTop.visibility = View.VISIBLE
+                        }
+                    }, 200)
                 } else if (currentScrollY >= previousScrollY) {
-                    // Скрываем кнопку
+                    // Скрываем кнопку при прокрутке вниз
                     binding.scrollTop.visibility = View.GONE
                 }
-
-                // Обновляем предыдущее состояние прокрутки
                 previousScrollY = currentScrollY
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+
+                // Если прокрутка остановилась и кнопка была нажата
+                if (newState == RecyclerView.SCROLL_STATE_IDLE && isButtonClicked) {
+                    // Сбрасываем флаг, так как прокрутка завершена
+                    isButtonClicked = false
+                }
             }
         })
 
 
-        binding.scrollTop.setOnClickListener{ it: View ->
+        binding.scrollTop.setOnClickListener{
             binding.list.smoothScrollToPosition(0)
-            it.visibility = View.GONE
+            binding.scrollTop.visibility = View.GONE
+            isButtonClicked = true
 
         }
 

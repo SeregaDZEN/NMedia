@@ -96,7 +96,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 val media = upload(photo.file)
                 post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
             } else post
-            dao.insertLocal(PostEntityLocal.fromDto(post))
+            dao.insert(PostEntity.fromDto(post))
 
             val response = PostApi.retrofitService.save(postWithAttachment)
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
