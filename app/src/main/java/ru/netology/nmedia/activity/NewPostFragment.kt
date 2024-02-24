@@ -8,7 +8,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toFile
 import androidx.core.view.MenuProvider
@@ -47,7 +46,7 @@ class NewPostFragment : Fragment() {
         arguments?.textArg
             ?.let(binding.edit::setText)
 
-        val launcher =
+        val contract =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == ImagePicker.RESULT_ERROR) {
                     Toast.makeText(requireContext(), R.string.no_intent, Toast.LENGTH_SHORT).show()
@@ -75,16 +74,16 @@ class NewPostFragment : Fragment() {
             ImagePicker.with(this)
                 .galleryOnly()
                 .crop()
-                .maxResultSize(2048, 2048)
-                .createIntent(launcher::launch)
+                .maxResultSize(1024, 1024)
+                .createIntent(contract::launch) // launch- функция которая принимает на вход Интент
         }
 
         binding.takePhoto.setOnClickListener {
             ImagePicker.with(this)
                 .cameraOnly()
                 .crop()
-                .maxResultSize(2048, 2048)
-                .createIntent(launcher::launch)
+                .maxResultSize(1024, 1024)
+                .createIntent(contract::launch) // launch- функция которая принимает на вход Интент
         }
 
         requireActivity().addMenuProvider(object : MenuProvider {

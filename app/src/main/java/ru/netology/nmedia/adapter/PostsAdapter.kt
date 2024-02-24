@@ -57,8 +57,8 @@ class PostViewHolder(
                 "http://10.0.2.2:9999/avatars/${post.authorAvatar}" // сервер хранит название нужной картинки в поле author
 
 
-            val urlPhoto =
-                if (post.attachment != null) "http://10.0.2.2:9999/media/${post.attachment?.url}" else "http://10.0.2.2:9999/media/58b15829-071e-4b38-bf4f-918dda27325c.jpg"
+            val urlPhoto = "http://10.0.2.2:9999/media/${post.attachment?.url}"
+               // else "http://10.0.2.2:9999/media/e392c447-00f0-434e-b312-be56f0e22063.jpg"
 
             binding.attach.setOnClickListener {
                 onInteractionListener.bigPhoto(urlPhoto)
