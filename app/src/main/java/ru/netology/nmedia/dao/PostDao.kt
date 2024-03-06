@@ -35,7 +35,7 @@ interface PostDao {
            WHERE id = :id;
            """
     )
-    fun likeById(id: Long)
+    suspend fun likeById(id: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
 

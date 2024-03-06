@@ -18,6 +18,11 @@ class AppAuth private constructor(context: Context) {
 
     fun setFlow(authState:AuthState){
         _authState.value = authState
+        with(prefs.edit()) {
+            putLong(KEY_ID, authState.id)
+            putString(KEY_TOKEN, authState.token)
+            commit()
+        }
     }
     @Synchronized
     fun setAuth(id: Long, token: String) {

@@ -49,7 +49,7 @@ interface PostsApiService {
 
     @Multipart
     @POST("media")
-    suspend fun upload(file: MultipartBody.Part): Media
+    suspend fun upload(@Part file: MultipartBody.Part): Media
 
     @FormUrlEncoded
     @POST("users/authentication")
