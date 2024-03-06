@@ -3,17 +3,12 @@ package ru.netology.nmedia.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.fragment.app.FragmentManager
-import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
-import ru.netology.nmedia.activity.PhotoFragment
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 
@@ -58,7 +53,7 @@ class PostViewHolder(
 
 
             val urlPhoto = "http://10.0.2.2:9999/media/${post.attachment?.url}"
-               // else "http://10.0.2.2:9999/media/e392c447-00f0-434e-b312-be56f0e22063.jpg"
+            // else "http://10.0.2.2:9999/media/e392c447-00f0-434e-b312-be56f0e22063.jpg"
 
             binding.attach.setOnClickListener {
                 onInteractionListener.bigPhoto(urlPhoto)
@@ -86,7 +81,7 @@ class PostViewHolder(
                 .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
                 .into(binding.avatar) // куда вставить
 
-
+            menu.isVisible = post.ownedByMe
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.options_post)
@@ -121,7 +116,7 @@ class PostViewHolder(
 
 class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
     override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
-        return oldItem.id == newItem.id
+        return oldItem.authorId == newItem.authorId
     }
 
     override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {

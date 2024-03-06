@@ -8,11 +8,13 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
@@ -23,6 +25,7 @@ import ru.netology.nmedia.util.SingleLiveEvent
 
 private val empty = Post(
     id = 0,
+    authorId = 0,
     content = "",
     author = "",
     authorAvatar = "",
@@ -30,7 +33,9 @@ private val empty = Post(
     likedByMe = false,
     hide = false,
     likes = 0,
-    attachment = null
+    attachment = null,
+    ownedByMe = false
+
 
 )
 
@@ -38,24 +43,33 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     // упрощённый вариант
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(application).postDao())
+
     private val _dataState = MutableLiveData(FeedModelState())
 
-    val data: LiveData<FeedModel> = repository.dataRepo.map { posts ->
-        // Фильтруем только видимые
-        posts.filter { !it.hide }
-    }.map(::FeedModel).catch { it.printStackTrace() }.asLiveData(Dispatchers.Default)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val data: LiveData<FeedModel> = AppAuth.getInstance()
+        .authState.flatMapLatest { auth ->
+        repository.dataRepo.map { posts ->
+
+            FeedModel(
+                posts.map { it.copy(ownedByMe = auth.id == it.authorId) }.filter { !it.hide },
+                posts.isEmpty()
+            )
+
+
+        }
+    }.asLiveData(Dispatchers.Default)
 
 
     // А здесь берём все посты в т.ч. скрытые для запроса новых с сервера
     val newerCount = repository.dataRepo.asLiveData()
         .switchMap {
-            repository.getNewerCount(it.firstOrNull()?.id ?: 0L).catch {
+            repository.getNewerCount(it.firstOrNull()?.authorId ?: 0L).catch {
                 _dataState.postValue(
                     FeedModelState(error = true)
                 )
             }.asLiveData(Dispatchers.Default, 100)
         }
-
 
 
     private val _photo = MutableLiveData<PhotoModel?>(null)
@@ -76,7 +90,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun savePhoto(photoModel: PhotoModel) {
         _photo.value = photoModel
     }
-    fun clear (){
+
+    fun clear() {
         _photo.value = null
     }
 
@@ -128,12 +143,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun like(post: Post) {
-
-
         viewModelScope.launch {
-
             try {
-                repository.likeById(post.id)
+                repository.likeById(post.authorId)
             } catch (e: Exception) {
                 _dataState.value = FeedModelState(error = true)
             }

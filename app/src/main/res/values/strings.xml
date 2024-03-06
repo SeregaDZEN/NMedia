@@ -27,4 +27,14 @@
     <string name="no_intent">no_such_intention</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="sign_in">sign_in</string>
+    <string name="sign_up">sign_up</string>
+    <string name="sign_out">sign_out</string>
+    <string name="password_hint">password</string>
+    <string name="login_hint">login</string>
+    <string name="enter">enter</string>
+    <string name="enter_button">войти</string>
+    <string name="name">name</string>
+    <string name="confirmpassword">confirmPassword</string>
+    <string name="registration">Зарегистрироваться</string>
 </resources>

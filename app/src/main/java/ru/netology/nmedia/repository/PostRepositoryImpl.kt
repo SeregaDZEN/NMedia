@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.auth.AuthState
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
@@ -49,6 +50,45 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         }
     }
 
+    override suspend fun authenticate(login: String, password: String) : AuthState {
+        try {
+            val response = PostApi.retrofitService.authenticate(login,password)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            val body: AuthState = response.body() ?: throw ApiError(response.code(), response.message())
+
+            return AuthState(body.id, body.token)
+
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        } catch (e: ApiError) {
+            throw e
+        }
+
+    }
+
+    override suspend fun registerUser(login: String, password: String, name: String): AuthState {
+        try {
+            val response = PostApi.retrofitService.registerUser(login,password,name)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            val body: AuthState = response.body() ?: throw ApiError(response.code(), response.message())
+
+            return AuthState(body.id, body.token)
+
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        } catch (e: ApiError) {
+            throw e
+        }
+    }
+
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {
 
@@ -71,6 +111,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         try {
             dao.likeById(id)
             val response = PostApi.retrofitService.likeById(id)
+
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -101,7 +142,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val body = response.body() ?: throw ApiError(response.code(), response.message())
 
-            dao.removeByIdLocal(post.id)
+            dao.removeByIdLocal(post.authorId)
             val postId = PostEntity.fromDto(body)
             dao.insert(postId)
         } catch (e: IOException) {

@@ -10,6 +10,7 @@ import ru.netology.nmedia.entity.PostEntityLocal
 
 @Database(entities = [PostEntity::class, PostEntityLocal::class], version = 1)
 
+
 abstract class AppDb : RoomDatabase() {
     abstract fun postDao(): PostDao
 
