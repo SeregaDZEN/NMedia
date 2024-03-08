@@ -49,16 +49,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     @OptIn(ExperimentalCoroutinesApi::class)
     val data: LiveData<FeedModel> = AppAuth.getInstance()
         .authState.flatMapLatest { auth ->
-        repository.dataRepo.map { posts ->
+            repository.dataRepo.map { posts ->
 
-            FeedModel(
-                posts.map { it.copy(ownedByMe = auth.id == it.authorId) }.filter { !it.hide },
-                posts.isEmpty()
-            )
+                FeedModel(
+                    posts.map { it.copy(ownedByMe = auth.id == it.authorId) }.filter { !it.hide },
+                    posts.isEmpty()
+                )
 
 
-        }
-    }.asLiveData(Dispatchers.Default)
+            }
+        }.asLiveData(Dispatchers.Default)
 
 
     // А здесь берём все посты в т.ч. скрытые для запроса новых с сервера
@@ -125,9 +125,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun save() {
 
         viewModelScope.launch {
-            edited.value?.let { repository.save(it, _photo.value) }
+            try {
+                edited.value?.let { repository.save(it, _photo.value) }
+            } catch (e: Exception) {
+                edited.value = empty
+            }
         }
-        edited.value = empty
     }
 
     fun edit(post: Post) {

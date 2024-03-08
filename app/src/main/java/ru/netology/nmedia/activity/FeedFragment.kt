@@ -17,15 +17,21 @@ import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
+import android.app.Dialog
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.DialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import ru.netology.nmedia.util.AuthenticationDialogFragment
 
 class FeedFragment : Fragment() {
 
     private var isButtonClicked = false
 
 
-
     private val viewModel: PostViewModel by activityViewModels()
+    private val authViewModel: AuthViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,13 +48,31 @@ class FeedFragment : Fragment() {
                findNavController().navigate(R.id.action_feedFragment_to_photoFragment, args)
             }
             override fun onEdit(post: Post) {
+
                 viewModel.edit(post)
 
             }
 
             override fun onLike(post: Post) {
-                viewModel.like(post)
+
+                if (authViewModel.authenticated){
+                    viewModel.like(post)
+                }else{
+                    MaterialAlertDialogBuilder(requireActivity()).apply {
+                        setTitle("Аутентификация")
+                        setMessage("Вы хотите пройти аутентификацию сейчас? ")
+                        setPositiveButton("Да") { _, _,  ->
+                            findNavController().navigate(R.id.authFragment)
+                        }
+                        setNegativeButton("Нет") { _,  _-> }
+                        setCancelable(true)
+                    }.create().show()
+
+                }
             }
+
+
+
 
             override fun onRemove(post: Post) {
                 viewModel.removeById(post.authorId)
@@ -186,11 +210,25 @@ class FeedFragment : Fragment() {
         }
 
         binding.fab.setOnClickListener {
-            findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            if (authViewModel.authenticated) {
+                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            }else{
+                MaterialAlertDialogBuilder(requireActivity()).apply {
+                    setTitle("Аутентификация")
+                    setMessage("Вы хотите пройти аутентификацию сейчас? ")
+                    setPositiveButton("Да") { _, _,  ->
+                        findNavController().navigate(R.id.authFragment)
+                    }
+                    setNegativeButton("Нет") { _,  _-> }
+                    setCancelable(true)
+                }.create().show()
+            }
         }
 
         return binding.root
 
     }
+
+
 
 }

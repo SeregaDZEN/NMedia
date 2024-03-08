@@ -17,11 +17,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
+import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class NewPostFragment : Fragment() {
@@ -31,6 +33,8 @@ class NewPostFragment : Fragment() {
     }
 
     private val viewModel: PostViewModel by activityViewModels()
+
+    private val authViewModel: AuthViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -98,6 +102,25 @@ class NewPostFragment : Fragment() {
                             viewModel.save()
                             AndroidUtils.hideKeyboard(requireView())
                             findNavController().navigateUp()
+                        true
+                    }
+                    R.id.signOut -> {
+
+                        MaterialAlertDialogBuilder(requireActivity()) // Используйте `this` в активити
+                            .setTitle("Выход")
+                            .setMessage("Разлогиниться?")
+                            .setPositiveButton("Да") { dialog, which ->
+                                // выполните действия, когда пользователь выбирает "Да"
+                                findNavController().navigate(R.id.feedFragment)
+                                authViewModel.logout() //тут не особо уверен, оставлю так!!! если что понял!)
+                            }
+                            .setNegativeButton("Нет") { dialog, which ->
+                                // выполните действия, когда пользователь выбирает "Нет"
+                            }
+                            .setCancelable(true)
+                            .create()
+                            .show()
+
                         true
                     }
                     else -> false

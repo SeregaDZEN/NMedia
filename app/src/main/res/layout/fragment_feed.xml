@@ -66,6 +66,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+<!--    <ImageView-->
+<!--        android:id="@+id/attentionAuth"-->
+<!--        android:layout_width="@dimen/icon_button_min_size"-->
+<!--        android:layout_height="@dimen/icon_button_min_size"-->
+
+
 
     <ImageView
         android:id="@+id/bell"

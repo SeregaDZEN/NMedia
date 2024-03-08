@@ -13,12 +13,11 @@ import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
 
 class AuthViewModel : ViewModel() {
+    fun logout() {
+        AppAuth.getInstance().removeAuth()
+    }
+
     val data = AppAuth.getInstance().authState
-
-
-
-    //        .authState
-//        .asLiveData(Dispatchers.Default)
     val authenticated: Boolean
         get() = data.value.id != 0L
 

@@ -24,16 +24,7 @@ class AppAuth private constructor(context: Context) {
             commit()
         }
     }
-    @Synchronized
-    fun setAuth(id: Long, token: String) {
-        _authState.value = AuthState(id, token)
-        with(prefs.edit()) {
-            putLong(KEY_ID, id)
-            putString(KEY_TOKEN, token)
-            commit()
-        }
 
-    }
 
     @Synchronized
     fun removeAuth() {

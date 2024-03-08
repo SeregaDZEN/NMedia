@@ -161,7 +161,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 file.name,
                 file.asRequestBody()
             )
-
         )
     }
 
@@ -172,7 +171,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun refreshHide() {
         dao.refreshHide(state = true, oppositeState = false)
     }
-
 
     override suspend fun removeById(id: Long) {
         try {
@@ -188,8 +186,4 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             throw e
         }
     }
-
-
 }
-
-
