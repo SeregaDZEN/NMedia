@@ -1,12 +1,22 @@
 package ru.netology.nmedia.auth
 
 import android.content.Context
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import ru.netology.nmedia.db.AppDb
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.dto.PushToken
 
 class AppAuth private constructor(context: Context) {
+
+    init {
+        sendPushToken()
+    }
 
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
@@ -16,13 +26,14 @@ class AppAuth private constructor(context: Context) {
 
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    fun setFlow(authState:AuthState){
+    fun setFlow(authState: AuthState) {
         _authState.value = authState
         with(prefs.edit()) {
             putLong(KEY_ID, authState.id)
             putString(KEY_TOKEN, authState.token)
             commit()
         }
+        sendPushToken()
     }
 
 
@@ -33,23 +44,41 @@ class AppAuth private constructor(context: Context) {
             clear()
             commit()
         }
+        sendPushToken()
     }
 
-        companion object {
-            private const val KEY_ID = "id"
-            private const val KEY_TOKEN = "token"
-
-            @Volatile
-            private var instance: AppAuth? = null
-
-            fun getInstance() = synchronized(this) {
-                instance ?: throw IllegalAccessError("getInstance should be called only after initAuth")
+     fun sendPushToken(token: String? = null) {
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val tokenDto = PushToken(token ?: FirebaseMessaging.getInstance().token.await())
+                PostApi.retrofitService.sendPushToken(tokenDto)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
 
-            fun initAuth(context: Context) = instance ?: synchronized(this) {
-                instance ?: AppAuth(context).also { instance = it }
-            }
         }
     }
 
-    data class AuthState(val id: Long = 0L, val token: String? = null, val name: String? = null, val error: Exception? = null)
+    companion object {
+        private const val KEY_ID = "id"
+        private const val KEY_TOKEN = "token"
+
+        @Volatile
+        private var instance: AppAuth? = null
+
+        fun getInstance() = synchronized(this) {
+            instance ?: throw IllegalAccessError("getInstance should be called only after initAuth")
+        }
+
+        fun initAuth(context: Context) = instance ?: synchronized(this) {
+            instance ?: AppAuth(context).also { instance = it }
+        }
+    }
+}
+
+data class AuthState(
+    val id: Long = 0L,
+    val token: String? = null,
+    val name: String? = null,
+    val error: Exception? = null
+)

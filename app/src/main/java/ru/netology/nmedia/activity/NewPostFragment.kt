@@ -107,14 +107,14 @@ class NewPostFragment : Fragment() {
                     R.id.signOut -> {
 
                         MaterialAlertDialogBuilder(requireActivity()) // Используйте `this` в активити
-                            .setTitle("Выход")
-                            .setMessage("Разлогиниться?")
-                            .setPositiveButton("Да") { dialog, which ->
+                            .setTitle(R.string.log_out)
+                            .setMessage(R.string.sign_out)
+                            .setPositiveButton(R.string.yes) { dialog, which ->
                                 // выполните действия, когда пользователь выбирает "Да"
                                 findNavController().navigate(R.id.feedFragment)
                                 authViewModel.logout() //тут не особо уверен, оставлю так!!! если что понял!)
                             }
-                            .setNegativeButton("Нет") { dialog, which ->
+                            .setNegativeButton(R.string.no) { dialog, which ->
                                 // выполните действия, когда пользователь выбирает "Нет"
                             }
                             .setCancelable(true)

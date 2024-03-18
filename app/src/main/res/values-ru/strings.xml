@@ -25,5 +25,28 @@
     <string name="news">новое</string>
     <string name="clear">очистить</string>
     <string name="no_intent">нет такого намерения</string>
+    <string name="hello_blank_fragment">привет бланк фрагмент!</string>
+    <string name="sign_up">зарегистрироваться</string>
+    <string name="sign_out">разлогиниться</string>
+    <string name="password_hint">пароль_фон</string>
+    <string name="login_hint">логин_фон</string>
+    <string name="enter">выбрать</string>
+    <string name="enter_button">кнопка_войти</string>
+    <string name="name">имя</string>
+    <string name="confirmpassword">подтвердить пароль</string>
+    <string name="registration">регистрация</string>
+    <string name="log_out">разлогиниться</string>
+    <string name="yes">да</string>
+    <string name="no">нет</string>
+    <string name="authentication">аутентификация</string>
+    <string name="authenticate_now">Вы хотите пройти аутентификацию сейчас?</string>
+    <string name="cancel">отмена</string>
+    <string name="Password_mismatch">пароли не совпадают</string>
+    <string name="NoInternet">нет интернета</string>
+    <string name="register">Регистрация</string>
+    <string name="Button_pressed">Кнопка зажата</string>
+    <string name="network_error">ошибка сети</string>
+    <string name="retry">повторить</string>
+    <string name="sign_in">войти</string>
 
 </resources>

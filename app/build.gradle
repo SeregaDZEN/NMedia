@@ -68,8 +68,9 @@ dependencies {
     def retrofitgson_version = "2.9.0"
     def okhttplogging_version = "4.12.0"
     def coroutines_version = "1.7.3"
-    def play_services_base_version = "18.1.0"
+    def play_services_base_version = "18.3.0"
     def imagepicker_version = "2.1"
+    def coroutines_version_play = "1.8.0"
 
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
@@ -99,6 +100,8 @@ dependencies {
     implementation "com.github.dhaval2404:imagepicker:$imagepicker_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     implementation "com.google.android.gms:play-services-base:$play_services_base_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$coroutines_version_play"
+
 
     testImplementation "junit:junit:$junit_version"
     androidTestImplementation "androidx.test.ext:junit:$ext_junit_version"

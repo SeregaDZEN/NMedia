@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -19,11 +20,6 @@ import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
-import android.app.Dialog
-import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.DialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import ru.netology.nmedia.util.AuthenticationDialogFragment
 
 class FeedFragment : Fragment() {
 
@@ -59,12 +55,12 @@ class FeedFragment : Fragment() {
                     viewModel.like(post)
                 }else{
                     MaterialAlertDialogBuilder(requireActivity()).apply {
-                        setTitle("Аутентификация")
-                        setMessage("Вы хотите пройти аутентификацию сейчас? ")
-                        setPositiveButton("Да") { _, _,  ->
+                        setTitle(R.string.authentication)
+                        setMessage(R.string.authenticate_now)
+                        setPositiveButton(R.string.yes) { _, _,  ->
                             findNavController().navigate(R.id.authFragment)
                         }
-                        setNegativeButton("Нет") { _,  _-> }
+                        setNegativeButton(R.string.no) { _,  _-> }
                         setCancelable(true)
                     }.create().show()
 
@@ -192,14 +188,14 @@ class FeedFragment : Fragment() {
                     .setAction(
                         "ok"
                     ) {
-                        Toast.makeText(view?.context, "Кнопка нажата!", Toast.LENGTH_SHORT)
+                        Toast.makeText(view?.context, R.string.Button_pressed, Toast.LENGTH_SHORT)
                             .show()
                     }.setAnchorView(binding.fab).show()
 
             }
             if (state.error) {
-                Snackbar.make(binding.root, "ошибка сети", Snackbar.LENGTH_LONG)
-                    .setAction("retry") {
+                Snackbar.make(binding.root, R.string.network_error, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.retry) {
                         viewModel.loadPosts()
                     }.setAnchorView(binding.fab).show()
             }
@@ -214,12 +210,12 @@ class FeedFragment : Fragment() {
                 findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
             }else{
                 MaterialAlertDialogBuilder(requireActivity()).apply {
-                    setTitle("Аутентификация")
-                    setMessage("Вы хотите пройти аутентификацию сейчас? ")
-                    setPositiveButton("Да") { _, _,  ->
+                    setTitle(R.string.authentication)
+                    setMessage( R.string.authenticate_now)
+                    setPositiveButton(R.string.yes) { _, _,  ->
                         findNavController().navigate(R.id.authFragment)
                     }
-                    setNegativeButton("Нет") { _,  _-> }
+                    setNegativeButton(R.string.no) { _,  _-> }
                     setCancelable(true)
                 }.create().show()
             }

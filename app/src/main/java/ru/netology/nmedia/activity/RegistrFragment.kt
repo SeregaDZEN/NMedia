@@ -10,9 +10,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
-import ru.netology.nmedia.databinding.FragmentAuthBinding
+import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentRegistrBinding
-import ru.netology.nmedia.viewmodel.AuthorizationViewModel
 import ru.netology.nmedia.viewmodel.RegistrationViewModel
 
 class RegistrFragment : Fragment() {
@@ -31,7 +30,7 @@ class RegistrFragment : Fragment() {
             val name = bindingReg.name.text.toString()
 
             if (pas != confirm){
-                Toast.makeText(bindingReg.root.context, "пароли не совпадают", Toast.LENGTH_SHORT)
+                Toast.makeText(bindingReg.root.context, R.string.Password_mismatch, Toast.LENGTH_SHORT)
                     .show()
             } else{
                 viewModel.registerUser(log, pas, name)
@@ -44,7 +43,7 @@ class RegistrFragment : Fragment() {
             viewModel._authState.collect { authState ->
                 // Обновляем UI в соответствии с результатом аутентификации
                 if (authState.error != null) {
-                    Toast.makeText(bindingReg.root.context, "Интернета нету", Toast.LENGTH_SHORT)
+                    Toast.makeText(bindingReg.root.context, R.string.NoInternet, Toast.LENGTH_SHORT)
                         .show()
                 } else if (authState.id != 0L) {
                     // Переходим на главный экран приложения или показываем профиль пользователя

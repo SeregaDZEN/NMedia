@@ -16,10 +16,12 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.auth.AuthState
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.PushToken
 
 private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
 
@@ -50,12 +52,16 @@ interface PostsApiService {
     @POST("media")
     suspend fun upload(@Part file: MultipartBody.Part): Media
 
+
     @FormUrlEncoded
     @POST("users/authentication")
     suspend fun authenticate(
         @Field("login") login: String,
         @Field("pass") password: String
     ): Response<AuthState>
+
+    @POST("users/push-tokens")
+    suspend fun sendPushToken(@Body pushToken: PushToken)
 
     @FormUrlEncoded
     @POST("users/registration")

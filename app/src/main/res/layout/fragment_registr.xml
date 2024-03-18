@@ -76,7 +76,7 @@
         android:layout_height="@dimen/icon_button_min_size"
         android:layout_marginTop="@dimen/common_spacing"
         android:elevation="4dp"
-        android:text="Зарегистрироваться"
+        android:text="@string/register"
         android:textColor="#FFFB05"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
