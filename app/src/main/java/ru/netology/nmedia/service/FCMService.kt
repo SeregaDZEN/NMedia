@@ -7,30 +7,27 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
-import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.PushContent
-import ru.netology.nmedia.dto.PushToken
+import javax.inject.Inject
 import kotlin.random.Random
 
-
+@AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
     private val action = "action"
     private val content = "content"
     private val channelId = "remote"
     private val gson = Gson()
+
+    @Inject
+    lateinit var appAuth: AppAuth
 
 
     override fun onCreate() {
@@ -46,15 +43,17 @@ class FCMService : FirebaseMessagingService() {
     }
 
     private fun createNotification(context: Context, title: String, content: String): Notification {
-        return NotificationCompat.Builder(context, content)
+        return NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
+            .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
 
-        val valueIdLocal = AppAuth.getInstance().authState.value.id
+        val valueIdLocal = appAuth.authState.value.id
         val valueIdServer = Gson().fromJson(message.data["content"], PushContent::class.java)
 
         if (valueIdLocal == valueIdServer.recipientId || valueIdServer.recipientId == null) {
@@ -66,28 +65,20 @@ class FCMService : FirebaseMessagingService() {
             notify(notification)
         }
 
-        if (valueIdServer.recipientId == 0L || valueIdServer.recipientId != valueIdLocal) {
-            val notification = createNotification(
-                this,
-                "сервер считает, что у вас анонимная аутентификация и вам нужно переотправить свой push token",
-                content
-            )
-            notify(notification)
-            AppAuth.getInstance().sendPushToken()
-        }else {
+        else {
             val notification = createNotification(
                 this,
                 "на вашем устройстве другая аутентификация",
                 content
             )
             notify(notification)
-            AppAuth.getInstance().sendPushToken()
+            appAuth.sendPushToken()
         }
 
     }
 
     override fun onNewToken(token: String) {
-        AppAuth.getInstance().sendPushToken(token)
+        appAuth.sendPushToken()
     }
 
     private fun handleLike(content: Like) {

@@ -1,23 +1,21 @@
 package ru.netology.nmedia.viewmodel
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import kotlinx.coroutines.Dispatchers
-import ru.netology.nmedia.api.PostApi
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.auth.AuthState
-import ru.netology.nmedia.error.ApiError
-import ru.netology.nmedia.error.NetworkError
-import ru.netology.nmedia.error.UnknownError
-import java.io.IOException
+import javax.inject.Inject
 
-class AuthViewModel : ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val appAuth: AppAuth,
+) : ViewModel(
+
+) {
     fun logout() {
-        AppAuth.getInstance().removeAuth()
+        appAuth.removeAuth()
     }
 
-    val data = AppAuth.getInstance().authState
+    val data = appAuth.authState
     val authenticated: Boolean
         get() = data.value.id != 0L
 

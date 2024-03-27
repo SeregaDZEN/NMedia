@@ -9,11 +9,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.databinding.FragmentAuthBinding
 import ru.netology.nmedia.viewmodel.AuthorizationViewModel
-
+@AndroidEntryPoint
 class AuthFragment : Fragment() {
+
     private val viewModel: AuthorizationViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,

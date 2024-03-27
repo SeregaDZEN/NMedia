@@ -9,12 +9,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentRegistrBinding
 import ru.netology.nmedia.viewmodel.RegistrationViewModel
 
+@AndroidEntryPoint
 class RegistrFragment : Fragment() {
+
     private val viewModel: RegistrationViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,10 +32,14 @@ class RegistrFragment : Fragment() {
             val confirm = bindingReg.confirmPassword.text.toString()
             val name = bindingReg.name.text.toString()
 
-            if (pas != confirm){
-                Toast.makeText(bindingReg.root.context, R.string.Password_mismatch, Toast.LENGTH_SHORT)
+            if (pas != confirm) {
+                Toast.makeText(
+                    bindingReg.root.context,
+                    R.string.Password_mismatch,
+                    Toast.LENGTH_SHORT
+                )
                     .show()
-            } else{
+            } else {
                 viewModel.registerUser(log, pas, name)
             }
 
