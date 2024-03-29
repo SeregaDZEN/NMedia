@@ -1,7 +1,6 @@
 package ru.netology.nmedia.repository
 
 
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +29,7 @@ import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 
-@AndroidEntryPoint
+
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService : ApiService
