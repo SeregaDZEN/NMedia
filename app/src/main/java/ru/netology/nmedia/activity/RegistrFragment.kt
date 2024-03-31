@@ -45,7 +45,7 @@ class RegistrFragment : Fragment() {
 
         }
 
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated{
 
             viewModel._authState.collect { authState ->
                 // Обновляем UI в соответствии с результатом аутентификации
@@ -60,6 +60,8 @@ class RegistrFragment : Fragment() {
             }
 
         }
+
+        
 
         return bindingReg.root
     }

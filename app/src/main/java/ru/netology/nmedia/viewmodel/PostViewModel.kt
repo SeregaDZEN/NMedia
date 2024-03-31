@@ -6,12 +6,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.filter
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.switchMap
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Post
@@ -37,6 +43,7 @@ private val empty = Post(
 
 
 )
+
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
@@ -46,30 +53,27 @@ class PostViewModel @Inject constructor(
 
     private val _dataState = MutableLiveData(FeedModelState())
 
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val data: LiveData<FeedModel> = appAuth
-        .authState.flatMapLatest { auth ->
+    val data: Flow<PagingData<Post>> = appAuth
+        .authState.flatMapLatest { (auth, _) ->
             repository.dataRepo.map { posts ->
 
-                FeedModel(
-                    posts.map { it.copy(ownedByMe = auth.id == it.authorId) }.filter { !it.hide },
-                    posts.isEmpty()
-                )
-
-
+                posts.map { it.copy(ownedByMe = it.id == auth) }.filter { !it.hide }
             }
-        }.asLiveData(Dispatchers.Default)
+        }.flowOn(Dispatchers.Default)
 
 
     // А здесь берём все посты в т.ч. скрытые для запроса новых с сервера
-    val newerCount = repository.dataRepo.asLiveData()
-        .switchMap {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val newerCount = repository.dataRepo
+        .flatMapLatest {
             repository.getNewerCount(it.firstOrNull()?.authorId ?: 0L).catch {
                 _dataState.postValue(
                     FeedModelState(error = true)
                 )
-            }.asLiveData(Dispatchers.Default, 100)
-        }
+            }
+        }.flowOn(Dispatchers.Default)
 
 
     private val _photo = MutableLiveData<PhotoModel?>(null)

@@ -100,6 +100,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                     }
 
                     R.id.signup -> {
+
                         findNavController(R.id.nav_host_fragment)
                             .navigate(
                                 R.id.registrFragment,

@@ -9,11 +9,15 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -37,66 +41,67 @@ class FeedFragment : Fragment() {
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
-        val adapter = PostsAdapter(object : OnInteractionListener{
+        val adapter = PostsAdapter(
+            object : OnInteractionListener {
 
-            override fun bigPhoto(url : String) {
-                val args = Bundle()
-                args.putString("image_url", url)
-               findNavController().navigate(R.id.action_feedFragment_to_photoFragment, args)
-            }
-            override fun onEdit(post: Post) {
-
-                viewModel.edit(post)
-
-            }
-
-            override fun onLike(post: Post) {
-
-                if (authViewModel.authenticated){
-                    viewModel.like(post)
-                }else{
-                    MaterialAlertDialogBuilder(requireActivity()).apply {
-                        setTitle(R.string.authentication)
-                        setMessage(R.string.authenticate_now)
-                        setPositiveButton(R.string.yes) { _, _,  ->
-                            findNavController().navigate(R.id.authFragment)
-                        }
-                        setNegativeButton(R.string.no) { _,  _-> }
-                        setCancelable(true)
-                    }.create().show()
-
-                }
-            }
-
-
-
-
-            override fun onRemove(post: Post) {
-                viewModel.removeById(post.authorId)
-            }
-
-            override fun onShare(post: Post) {
-                val intent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, post.content)
-                    type = "text/plain"
+                override fun bigPhoto(url: String) {
+                    val args = Bundle()
+                    args.putString("image_url", url)
+                    findNavController().navigate(R.id.action_feedFragment_to_photoFragment, args)
                 }
 
-                val shareIntent =
-                    Intent.createChooser(intent, getString(R.string.chooser_share_post))
-                startActivity(shareIntent)
-            }
-        }, )
+                override fun onEdit(post: Post) {
+
+                    viewModel.edit(post)
+
+                }
+
+                override fun onLike(post: Post) {
+
+                    if (authViewModel.authenticated) {
+                        viewModel.like(post)
+                    } else {
+                        MaterialAlertDialogBuilder(requireActivity()).apply {
+                            setTitle(R.string.authentication)
+                            setMessage(R.string.authenticate_now)
+                            setPositiveButton(R.string.yes) { _, _ ->
+                                findNavController().navigate(R.id.authFragment)
+                            }
+                            setNegativeButton(R.string.no) { _, _ -> }
+                            setCancelable(true)
+                        }.create().show()
+
+                    }
+                }
+
+
+                override fun onRemove(post: Post) {
+                    viewModel.removeById(post.authorId)
+                }
+
+                override fun onShare(post: Post) {
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, post.content)
+                        type = "text/plain"
+                    }
+
+                    val shareIntent =
+                        Intent.createChooser(intent, getString(R.string.chooser_share_post))
+                    startActivity(shareIntent)
+                }
+            },
+        )
         binding.list.adapter = adapter
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts()
         }
 
-/**
+        /**
 
 
- */
+         */
         val insertToTopListener = object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 if (positionStart == 0) {
@@ -141,7 +146,7 @@ class FeedFragment : Fragment() {
         })
 
 
-        binding.scrollTop.setOnClickListener{
+        binding.scrollTop.setOnClickListener {
             binding.list.smoothScrollToPosition(0)
             binding.scrollTop.visibility = View.GONE
             isButtonClicked = true
@@ -165,21 +170,30 @@ class FeedFragment : Fragment() {
         /**
         следит за кол-вом СКРЫТЫХ постов ( указывая их кол-во)
          */
-        viewModel.newerCount.observe(viewLifecycleOwner) { postCount ->
-            if (postCount > 0) {
-                binding.buttonScroll.visibility = View.VISIBLE
-                binding.bell.visibility = View.VISIBLE
-                binding.countPost.visibility = View.VISIBLE
-                binding.countPost.text = postCount.toString()
+
+        lifecycleScope.launchWhenCreated {
+            viewModel.newerCount.collectLatest { postCount ->
+                if (postCount > 0) {
+                    binding.buttonScroll.visibility = View.VISIBLE
+                    binding.bell.visibility = View.VISIBLE
+                    binding.countPost.visibility = View.VISIBLE
+                    binding.countPost.text = postCount.toString()
+                }
+
             }
+
         }
 
         /**
         следит за добавлением ВСЕХ постов (КРОМЕ СКРЫТЫХ!!!)
          */
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
+
+        lifecycleScope.launchWhenCreated {
+            viewModel.data.collectLatest {
+                adapter.submitData(it)
+            }
         }
+
 
 
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
@@ -203,20 +217,26 @@ class FeedFragment : Fragment() {
             binding.progress.isVisible = state.loading
             binding.swipeRefresh.isRefreshing = state.loading
 
+        }
 
+        lifecycleScope.launchWhenCreated {
+            adapter.loadStateFlow.collectLatest {
+                binding.swipeRefresh.isRefreshing =
+                    it.refresh is LoadState.Loading || it.append is LoadState.Loading || it.prepend is LoadState.Loading
+            }
         }
 
         binding.fab.setOnClickListener {
             if (authViewModel.authenticated) {
                 findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
-            }else{
+            } else {
                 MaterialAlertDialogBuilder(requireActivity()).apply {
                     setTitle(R.string.authentication)
-                    setMessage( R.string.authenticate_now)
-                    setPositiveButton(R.string.yes) { _, _,  ->
+                    setMessage(R.string.authenticate_now)
+                    setPositiveButton(R.string.yes) { _, _ ->
                         findNavController().navigate(R.id.authFragment)
                     }
-                    setNegativeButton(R.string.no) { _,  _-> }
+                    setNegativeButton(R.string.no) { _, _ -> }
                     setCancelable(true)
                 }.create().show()
             }
@@ -225,7 +245,6 @@ class FeedFragment : Fragment() {
         return binding.root
 
     }
-
 
 
 }
