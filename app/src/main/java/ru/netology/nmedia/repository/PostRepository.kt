@@ -18,8 +18,8 @@ interface PostRepository {
     val dataRepo: Flow<PagingData<Post>>
 
 
-    fun getNewerCount(id: Long): Flow<Int>
-    suspend fun getAll()
+    fun getNewerCount(id: Long): Flow<Long>
+//    suspend fun getAll()
     suspend fun authenticate(login: String, password: String) : AuthState
     suspend fun registerUser(login: String, password: String, name : String) : AuthState
 

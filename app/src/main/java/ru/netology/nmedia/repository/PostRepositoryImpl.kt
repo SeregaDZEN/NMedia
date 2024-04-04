@@ -43,23 +43,23 @@ class PostRepositoryImpl @Inject constructor(
             PostPagingSource(apiService)
         }
     ).flow
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAll()
-            if (!response.isSuccessful) {
-                throw ApiError(response.code(), response.message())
-            }
-            val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert2(body.toEntity())
-
-        } catch (e: IOException) {
-            throw NetworkError
-        } catch (e: Exception) {
-            throw UnknownError
-        } catch (e: ApiError) {
-            throw e
-        }
-    }
+//    override suspend fun getAll() {
+//        try {
+//            val response = apiService.getAll()
+//            if (!response.isSuccessful) {
+//                throw ApiError(response.code(), response.message())
+//            }
+//            val body = response.body() ?: throw ApiError(response.code(), response.message())
+//            dao.insert2(body.toEntity())
+//
+//        } catch (e: IOException) {
+//            throw NetworkError
+//        } catch (e: Exception) {
+//            throw UnknownError
+//        } catch (e: ApiError) {
+//            throw e
+//        }
+//    }
 
     override suspend fun authenticate(login: String, password: String): AuthState {
         try {
@@ -103,22 +103,12 @@ class PostRepositoryImpl @Inject constructor(
     }
 
 
-    override fun getNewerCount(id: Long): Flow<Int> = flow {
-
+    override  fun getNewerCount(id: Long): Flow<Long> = flow {
         while (true) {
             delay(10_000L)
-            val response = apiService.getNewerCount(id)
-            if (!response.isSuccessful) {
-                throw ApiError(response.code(), response.message())
-            }
-            val body = response.body() ?: throw ApiError(response.code(), response.message())
-            val copyBody = body.map { it.copy(hide = true) }
-            dao.insert2(copyBody.toEntity())
-            emit(dao.countHidden())
-
+            emit(((apiService.getNewerCount(id).body()?.count ?: 0L)))
         }
-    }.catch { e -> throw AppError.from(e) }
-        .flowOn(Dispatchers.Default)
+    }
 
     override suspend fun likeById(id: Long) {
         try {

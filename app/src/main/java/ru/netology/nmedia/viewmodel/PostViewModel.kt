@@ -7,6 +7,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +46,7 @@ private val empty = Post(
 )
 
 @HiltViewModel
-class PostViewModel @Inject constructor(
+    class PostViewModel @Inject constructor(
     private val repository: PostRepository,
     appAuth: AppAuth,
 
@@ -53,27 +54,21 @@ class PostViewModel @Inject constructor(
 
     private val _dataState = MutableLiveData(FeedModelState())
 
+    private val cached = repository.dataRepo.cachedIn(viewModelScope)
 
+    private var maxId = 0L
     @OptIn(ExperimentalCoroutinesApi::class)
-    val data: Flow<PagingData<Post>> = appAuth
-        .authState.flatMapLatest { (auth, _) ->
-            repository.dataRepo.map { posts ->
-
-                posts.map { it.copy(ownedByMe = it.id == auth) }.filter { !it.hide }
+    val data: Flow<PagingData<Post>> = appAuth.authState
+        .flatMapLatest { (auth, _) ->
+            cached.map { pagingData ->
+                pagingData.map { post ->
+                    maxId = maxOf(maxId, post.id)
+                    post.copy(ownedByMe = post.authorId == auth)
+                }
             }
-        }.flowOn(Dispatchers.Default)
+        }
 
-
-    // А здесь берём все посты в т.ч. скрытые для запроса новых с сервера
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val newerCount = repository.dataRepo
-        .flatMapLatest {
-            repository.getNewerCount(it.firstOrNull()?.authorId ?: 0L).catch {
-                _dataState.postValue(
-                    FeedModelState(error = true)
-                )
-            }
-        }.flowOn(Dispatchers.Default)
+    val newerCount = repository.getNewerCount(maxId)
 
 
     private val _photo = MutableLiveData<PhotoModel?>(null)
@@ -86,10 +81,10 @@ class PostViewModel @Inject constructor(
     val postCreated: LiveData<Unit>
         get() = _postCreated
 
-    init {
-        loadPosts()
-
-    }
+//    init {
+//        loadPosts()
+//
+//    }
 
     fun savePhoto(photoModel: PhotoModel) {
         _photo.value = photoModel
@@ -115,15 +110,15 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun loadPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(loading = true)
-            repository.getAll()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true)
-        }
-    }
+//    fun loadPosts() = viewModelScope.launch {
+//        try {
+//            _dataState.value = FeedModelState(loading = true)
+//
+//            _dataState.value = FeedModelState()
+//        } catch (e: Exception) {
+//            _dataState.value = FeedModelState(error = true)
+//        }
+//    }
 
 
     fun save() {

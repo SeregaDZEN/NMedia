@@ -15,10 +15,15 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.model.PhotoModel
@@ -34,7 +39,7 @@ class NewPostFragment : Fragment() {
         var Bundle.textArg: String? by StringArg
     }
 
-    private val viewModel: PostViewModel by activityViewModels()
+    private val postViewModel: PostViewModel by activityViewModels()
 
     private val authViewModel: AuthViewModel by activityViewModels()
 
@@ -54,10 +59,10 @@ class NewPostFragment : Fragment() {
                     return@registerForActivityResult
                 }
                 val uri = result.data?.data ?: return@registerForActivityResult
-                viewModel.savePhoto(PhotoModel(uri, uri.toFile()))
+                postViewModel.savePhoto(PhotoModel(uri, uri.toFile()))
             }
 
-        viewModel.photo.observe(viewLifecycleOwner) {
+        postViewModel.photo.observe(viewLifecycleOwner) {
             if (it == null) {
                 binding.previewContainer.isGone = true
                 return@observe
@@ -67,7 +72,7 @@ class NewPostFragment : Fragment() {
         }
 
         binding.clear.setOnClickListener {
-            viewModel.clear()
+            postViewModel.clear()
         }
 
         binding.getGallery.setOnClickListener {
@@ -88,8 +93,8 @@ class NewPostFragment : Fragment() {
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
                 R.id.save -> {
-                    viewModel.changeContent(binding.edit.text.toString())
-                    viewModel.save()
+                    postViewModel.changeContent(binding.edit.text.toString())
+                    postViewModel.save()
                     AndroidUtils.hideKeyboard(requireView())
                     findNavController().navigateUp()
                     true
@@ -116,10 +121,12 @@ class NewPostFragment : Fragment() {
 
         }, viewLifecycleOwner)
 
-        viewModel.postCreated.observe(viewLifecycleOwner) {
-            viewModel.loadPosts() // <----
+
+
+        postViewModel.postCreated.observe(viewLifecycleOwner) {
             findNavController().navigateUp()
         }
+
         return binding.root
     }
 }

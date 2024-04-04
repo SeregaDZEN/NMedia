@@ -9,15 +9,17 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -31,7 +33,8 @@ class FeedFragment : Fragment() {
 
     private var isButtonClicked = false
 
-    private val viewModel: PostViewModel by activityViewModels()
+
+    private val postViewModel: PostViewModel by activityViewModels()
     private val authViewModel: AuthViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -52,14 +55,14 @@ class FeedFragment : Fragment() {
 
                 override fun onEdit(post: Post) {
 
-                    viewModel.edit(post)
+                    postViewModel.edit(post)
 
                 }
 
                 override fun onLike(post: Post) {
 
                     if (authViewModel.authenticated) {
-                        viewModel.like(post)
+                        postViewModel.like(post)
                     } else {
                         MaterialAlertDialogBuilder(requireActivity()).apply {
                             setTitle(R.string.authentication)
@@ -76,7 +79,7 @@ class FeedFragment : Fragment() {
 
 
                 override fun onRemove(post: Post) {
-                    viewModel.removeById(post.authorId)
+                    postViewModel.removeById(post.authorId)
                 }
 
                 override fun onShare(post: Post) {
@@ -95,7 +98,7 @@ class FeedFragment : Fragment() {
         binding.list.adapter = adapter
 
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
+            adapter.refresh()
         }
 
         /**
@@ -160,7 +163,7 @@ class FeedFragment : Fragment() {
             binding.buttonScroll.visibility = View.GONE
             binding.bell.visibility = View.GONE
             binding.countPost.visibility = View.GONE
-            viewModel.showAll()
+            postViewModel.showAll()
 
             // Ждём, когда разница между новым и старым списком рассчитается
             adapter.registerAdapterDataObserver(insertToTopListener)
@@ -172,7 +175,7 @@ class FeedFragment : Fragment() {
          */
 
         lifecycleScope.launchWhenCreated {
-            viewModel.newerCount.collectLatest { postCount ->
+            postViewModel.newerCount.collectLatest { postCount ->
                 if (postCount > 0) {
                     binding.buttonScroll.visibility = View.VISIBLE
                     binding.bell.visibility = View.VISIBLE
@@ -184,19 +187,25 @@ class FeedFragment : Fragment() {
 
         }
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                authViewModel.data.collectLatest { adapter.refresh() }
+            }
+        }
+
         /**
         следит за добавлением ВСЕХ постов (КРОМЕ СКРЫТЫХ!!!)
          */
 
         lifecycleScope.launchWhenCreated {
-            viewModel.data.collectLatest {
+            postViewModel.data.collectLatest {
                 adapter.submitData(it)
             }
         }
 
 
 
-        viewModel.dataState.observe(viewLifecycleOwner) { state ->
+        postViewModel.dataState.observe(viewLifecycleOwner) { state ->
 
             if (state.errorMessage.isNotEmpty()) {
                 Snackbar.make(binding.root, state.errorMessage, Snackbar.LENGTH_INDEFINITE)
@@ -211,7 +220,7 @@ class FeedFragment : Fragment() {
             if (state.error) {
                 Snackbar.make(binding.root, R.string.network_error, Snackbar.LENGTH_LONG)
                     .setAction(R.string.retry) {
-                        viewModel.loadPosts()
+                       adapter.refresh()
                     }.setAnchorView(binding.fab).show()
             }
             binding.progress.isVisible = state.loading

@@ -17,7 +17,7 @@ interface PostDao {
     suspend fun insert(post: PostEntity)
 
     @Query("SELECT COUNT(*) FROM PostEntity WHERE hide = 1")
-    suspend fun countHidden(): Int
+    suspend fun count(): Int
 
     @Query("UPDATE PostEntity SET hide = :state WHERE hide = :oppositeState")
     suspend fun refreshHide (state: Boolean, oppositeState: Boolean)
