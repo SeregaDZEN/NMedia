@@ -15,15 +15,10 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.model.PhotoModel
@@ -34,6 +29,7 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 
 @AndroidEntryPoint
 class NewPostFragment : Fragment() {
+
 
     companion object {
         var Bundle.textArg: String? by StringArg
@@ -51,6 +47,11 @@ class NewPostFragment : Fragment() {
         )
 
         arguments?.textArg?.let(binding.edit::setText)
+
+
+        val textChange = arguments?.getString("EXTRA_CONTENT")
+
+        binding.edit.setText(textChange)
 
         val contract =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -86,10 +87,37 @@ class NewPostFragment : Fragment() {
                 .createIntent(contract::launch) // launch- функция которая принимает на вход Интент
         }
 
+
+
+
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.options_post, menu)
+            }
+
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
+                R.id.edit -> {
+                    postViewModel.changeContent(binding.edit.text.toString())
+                    postViewModel.save()
+                    AndroidUtils.hideKeyboard(requireView())
+                    findNavController().navigateUp()
+                    true
+                }
+
+                else -> false
+            }
+
+
+        }, viewLifecycleOwner)
+
+
+
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.new_post_menu, menu)
             }
+
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
                 R.id.save -> {

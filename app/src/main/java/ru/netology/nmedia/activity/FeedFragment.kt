@@ -55,8 +55,14 @@ class FeedFragment : Fragment() {
 
                 override fun onEdit(post: Post) {
 
+                    findNavController()
+                        .navigate(
+                            R.id.action_feedFragment_to_newPostFragment,
+                            Bundle().apply {
+                                putString("EXTRA_CONTENT", post.content)
+                            }
+                        )
                     postViewModel.edit(post)
-
                 }
 
                 override fun onLike(post: Post) {
@@ -170,9 +176,7 @@ class FeedFragment : Fragment() {
 
         }
 
-        /**
-        следит за кол-вом СКРЫТЫХ постов ( указывая их кол-во)
-         */
+
 
         lifecycleScope.launchWhenCreated {
             postViewModel.newerCount.collectLatest { postCount ->
@@ -193,9 +197,7 @@ class FeedFragment : Fragment() {
             }
         }
 
-        /**
-        следит за добавлением ВСЕХ постов (КРОМЕ СКРЫТЫХ!!!)
-         */
+
 
         lifecycleScope.launchWhenCreated {
             postViewModel.data.collectLatest {

@@ -1,14 +1,15 @@
 package ru.netology.nmedia.repository
 
 
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import kotlinx.coroutines.Dispatchers
+import androidx.paging.PagingData
+import androidx.paging.map
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.ApiService
@@ -19,9 +20,7 @@ import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
-import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.error.ApiError
-import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import ru.netology.nmedia.model.PhotoModel
@@ -33,33 +32,18 @@ import javax.inject.Singleton
 
 @Singleton
 class PostRepositoryImpl @Inject constructor(
-    private val dao: PostDao,
+    private val postDao: PostDao,
     private val apiService : ApiService
 ) : PostRepository {
 
-    override val dataRepo = Pager(
+    @OptIn(ExperimentalPagingApi::class)
+    override val dataRepo : Flow<PagingData<Post>> = Pager(
         config = PagingConfig(10, enablePlaceholders = false),
-        pagingSourceFactory = {
-            PostPagingSource(apiService)
-        }
+        pagingSourceFactory = { postDao.getPagingSource() },
+        remoteMediator = PostRemoteMediator(apiService, postDao)
     ).flow
-//    override suspend fun getAll() {
-//        try {
-//            val response = apiService.getAll()
-//            if (!response.isSuccessful) {
-//                throw ApiError(response.code(), response.message())
-//            }
-//            val body = response.body() ?: throw ApiError(response.code(), response.message())
-//            dao.insert2(body.toEntity())
-//
-//        } catch (e: IOException) {
-//            throw NetworkError
-//        } catch (e: Exception) {
-//            throw UnknownError
-//        } catch (e: ApiError) {
-//            throw e
-//        }
-//    }
+      .map { it.map(PostEntity :: toDto )    }
+
 
     override suspend fun authenticate(login: String, password: String): AuthState {
         try {
@@ -112,7 +96,7 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun likeById(id: Long) {
         try {
-            dao.likeById(id)
+            postDao.likeById(id)
             val response = apiService.likeById(id)
 
             if (!response.isSuccessful) {
@@ -121,7 +105,7 @@ class PostRepositoryImpl @Inject constructor(
 
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             val post = PostEntity.fromDto(body)
-            dao.insert(post)
+            postDao.insert(post)
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -139,15 +123,15 @@ class PostRepositoryImpl @Inject constructor(
                 val media = upload(photo.file)
                 post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
             } else post
-            dao.insert(PostEntity.fromDto(post))
+            postDao.insert(PostEntity.fromDto(post))
 
             val response = apiService.save(postWithAttachment)
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val body = response.body() ?: throw ApiError(response.code(), response.message())
 
-            dao.removeByIdLocal(post.authorId)
+            postDao.removeByIdLocal(post.authorId)
             val postId = PostEntity.fromDto(body)
-            dao.insert(postId)
+            postDao.insert(postId)
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -168,19 +152,19 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun showAll() {
-        dao.showAll()
+        postDao.showAll()
     }
 
     override suspend fun refreshHide() {
-        dao.refreshHide(state = true, oppositeState = false)
+        postDao.refreshHide(state = true, oppositeState = false)
     }
 
     override suspend fun removeById(id: Long) {
         try {
-            dao.removeById(id)
+            postDao.removeById(id)
             val response = apiService.removeById(id)
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
-            dao.removeById(id)
+            postDao.removeById(id)
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
