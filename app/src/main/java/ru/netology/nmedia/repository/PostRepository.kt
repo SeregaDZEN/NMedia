@@ -19,7 +19,7 @@ interface PostRepository {
 
 
     fun getNewerCount(id: Long): Flow<Long>
-//    suspend fun getAll()
+
     suspend fun authenticate(login: String, password: String) : AuthState
     suspend fun registerUser(login: String, password: String, name : String) : AuthState
 

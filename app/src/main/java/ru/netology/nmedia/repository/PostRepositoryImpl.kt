@@ -15,6 +15,8 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.auth.AuthState
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dao.PostRemoteKeyDao
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Media
@@ -32,17 +34,22 @@ import javax.inject.Singleton
 
 @Singleton
 class PostRepositoryImpl @Inject constructor(
+    private val apiService: ApiService,
     private val postDao: PostDao,
-    private val apiService : ApiService
+    db: AppDb,
+    postRemoteKeyDao: PostRemoteKeyDao,
 ) : PostRepository {
 
     @OptIn(ExperimentalPagingApi::class)
-    override val dataRepo : Flow<PagingData<Post>> = Pager(
+    override val dataRepo: Flow<PagingData<Post>> = Pager(
         config = PagingConfig(10, enablePlaceholders = false),
         pagingSourceFactory = { postDao.getPagingSource() },
-        remoteMediator = PostRemoteMediator(apiService, postDao)
+        remoteMediator = PostRemoteMediator(
+          apiService, db, postDao, postRemoteKeyDao
+
+        )
     ).flow
-      .map { it.map(PostEntity :: toDto )    }
+        .map { it.map(PostEntity::toDto) }
 
 
     override suspend fun authenticate(login: String, password: String): AuthState {
@@ -87,7 +94,7 @@ class PostRepositoryImpl @Inject constructor(
     }
 
 
-    override  fun getNewerCount(id: Long): Flow<Long> = flow {
+    override fun getNewerCount(id: Long): Flow<Long> = flow {
         while (true) {
             delay(10_000L)
             emit(((apiService.getNewerCount(id).body()?.count ?: 0L)))

@@ -21,8 +21,7 @@ import java.util.concurrent.CountDownLatch
 
 
 interface ApiService {
-//    @GET("posts")
-//    suspend fun getAll(): Response<List<Post>>
+
 
     @GET("posts/latest")
     suspend fun getLatest(@Query("count") count: Int): Response<List<Post>>
