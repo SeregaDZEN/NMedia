@@ -32,7 +32,10 @@ class PostRemoteMediator(
             val result = when (loadType) {
 
                 LoadType.REFRESH -> {
-                    apiService.getLatest(state.config.pageSize)
+                    val lastId = postRemoteKeyDao.max()
+                    if (lastId == null) {
+                        apiService.getLatest(state.config.pageSize)
+                    } else apiService.getAfter(lastId, state.config.pageSize)
                 }
 
                 LoadType.PREPEND -> {
@@ -59,7 +62,7 @@ class PostRemoteMediator(
             db.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        if (postRemoteKeyDao.isEmpty()) {
+                         if (postRemoteKeyDao.max() == null ) {
                             postRemoteKeyDao.insertList(
                                 listOf(
                                     PostRemoteKeyEntity(
