@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="24dp"
+    android:background="#E0E0E0"> <!-- Установка серого фона для FrameLayout -->
+
+    <TextView
+        android:id="@+id/timePub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|center_vertical"
+        android:gravity="center"
+        android:text="Сегодня"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</FrameLayout>

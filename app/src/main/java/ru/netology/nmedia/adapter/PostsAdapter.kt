@@ -6,13 +6,18 @@ import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
-import ru.netology.nmedia.auth.AuthState
+import ru.netology.nmedia.databinding.CardAdBinding
 import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.databinding.TimestampCardBinding
+import ru.netology.nmedia.dto.Ad
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.TimeCheck
+import ru.netology.nmedia.view.load
+
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
@@ -24,25 +29,76 @@ interface OnInteractionListener {
 
 class PostsAdapter(
     private val onInteractionListener: OnInteractionListener,
-) : PagingDataAdapter<Post, PostViewHolder>(PostDiffCallback()) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        val binding = CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PostViewHolder(binding, onInteractionListener)
-    }
+) : PagingDataAdapter<FeedItem, RecyclerView.ViewHolder>(PostDiffCallback()) {
+    override fun getItemViewType(position: Int): Int =
+        when (getItem(position)) {
+            is Ad -> R.layout.card_ad
+            is Post -> R.layout.card_post
+            is  TimeCheck -> R.layout.timestamp_card
+            null -> error("unknown item type:  ${getItem(position)}")
+        }
 
-    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        val post = getItem(position)  ?: return
-        holder.bind(post)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
+        when (viewType) {
+            R.layout.card_ad -> {
+                val binding =
+                    CardAdBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                AdViewHolder(binding)
+            }
+
+            R.layout.card_post -> {
+                val binding =
+                    CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                PostViewHolder(binding, onInteractionListener)
+            }
+            R.layout.timestamp_card -> {
+                val binding =
+                TimestampCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                TimeCheckViewHolder(binding)
+            }
+
+            else -> {
+                error("unknown viewType: $viewType")
+            }
+        }
+
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when( val item = getItem(position)){
+            is Ad -> (holder as?  AdViewHolder)?.bind(item)
+            is Post -> (holder as? PostViewHolder)?.bind(item)
+            is TimeCheck -> (holder as? TimeCheckViewHolder)?.bind(item)
+            null -> error("unknown item type")
+        }
     }
 }
 
+class AdViewHolder(
+    private val cardBinding: CardAdBinding,
+) : RecyclerView.ViewHolder(cardBinding.root) {
+    fun bind(ad: Ad) {
+        cardBinding.imageAd.load("http://10.0.2.2:9999/media/${ad.image}")
+    }
+
+}
+
+class TimeCheckViewHolder(
+    private val timeBinding: TimestampCardBinding,
+) : RecyclerView.ViewHolder(timeBinding.root) {
+    fun bind(time : TimeCheck) {
+        timeBinding.timePub.text = time.timestamp
+    }
+
+}
+
 class PostViewHolder(
-    private val binding: CardPostBinding,
+    private val postBinding: CardPostBinding,
     private val onInteractionListener: OnInteractionListener,
-) : RecyclerView.ViewHolder(binding.root) {
+) : RecyclerView.ViewHolder(postBinding.root) {
 
     fun bind(post: Post) {
-        binding.apply {
+        postBinding.apply {
             author.text = post.author
             published.text = post.published.toString()
             content.text = post.content
@@ -57,31 +113,31 @@ class PostViewHolder(
             val urlPhoto = "http://10.0.2.2:9999/media/${post.attachment?.url}"
             // else "http://10.0.2.2:9999/media/e392c447-00f0-434e-b312-be56f0e22063.jpg"
 
-            binding.attach.setOnClickListener {
+            postBinding.attach.setOnClickListener {
                 onInteractionListener.bigPhoto(urlPhoto)
             }
 
 
-            binding.attach.isVisible = post.attachment != null
+            postBinding.attach.isVisible = post.attachment != null
             if (post.attachment != null) {
                 Glide
-                    .with(binding.root)
+                    .with(postBinding.root)
                     .load(urlPhoto)// откуда грузить
                     .timeout(15_000) // сколько максимум ждать
                     .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
                     .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
                     .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
-                    .into(binding.attach) // куда вставить
+                    .into(postBinding.attach) // куда вставить
             }
 
             Glide
-                .with(binding.root)
+                .with(postBinding.root)
                 .load(url)
                 .timeout(15_000) // сколько максимум ждать
                 .placeholder(R.drawable.baseline_image_24) // картинка пока грузится
                 .error(R.drawable.baseline_error_outline_24) // если загрузка не удалась картинка
                 .circleCrop() // дополнительные опции из requestOptions (здесь по кругу обрезать)
-                .into(binding.avatar) // куда вставить
+                .into(postBinding.avatar) // куда вставить
 
             menu.isVisible = post.ownedByMe
             menu.setOnClickListener {
@@ -117,12 +173,14 @@ class PostViewHolder(
     }
 }
 
-class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
-    override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
-        return oldItem.authorId == newItem.authorId
+class PostDiffCallback : DiffUtil.ItemCallback<FeedItem>() {
+    override fun areItemsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
+        if (oldItem::class != newItem::class) return false
+
+        return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
+    override fun areContentsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
         return oldItem == newItem
     }
 }

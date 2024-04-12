@@ -27,7 +27,6 @@ class AuthFragment : Fragment() {
         bindingAuth.buttonLogin.setOnClickListener {
             val log = bindingAuth.login.text.toString()
             val pas = bindingAuth.password.text.toString()
-
             viewModel.authenticate(log,pas)
         }
 

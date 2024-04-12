@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
+import ru.netology.nmedia.adapter.PostLoadingStateAdapter
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
@@ -101,7 +102,12 @@ class FeedFragment : Fragment() {
                 }
             },
         )
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostLoadingStateAdapter { adapter.retry() },
+            footer = PostLoadingStateAdapter { adapter.retry() }
+        )
+
+
 
         binding.swipeRefresh.setOnRefreshListener {
             adapter.refresh()
@@ -111,16 +117,17 @@ class FeedFragment : Fragment() {
 
 
          */
-        val insertToTopListener = object : RecyclerView.AdapterDataObserver() {
-            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                if (positionStart == 0) {
-                    binding.list.smoothScrollToPosition(0)
-                    // Дело сделано, удаляем слушатель до следующего клика, чтобы не было лишних скроллов
-                    adapter.unregisterAdapterDataObserver(this)
-                }
-            }
-        }
 
+        /*       val insertToTopListener = object : RecyclerView.AdapterDataObserver() {
+                   override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                       if (positionStart == 0) {
+                           binding.list.smoothScrollToPosition(0)
+                           // Дело сделано, удаляем слушатель до следующего клика, чтобы не было лишних скроллов
+                           adapter.unregisterAdapterDataObserver(this)
+                       }
+                   }
+               }
+       */
         binding.list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             private var previousScrollY = 0
 
@@ -172,10 +179,9 @@ class FeedFragment : Fragment() {
             postViewModel.showAll()
 
             // Ждём, когда разница между новым и старым списком рассчитается
-            adapter.registerAdapterDataObserver(insertToTopListener)
+            //adapter.registerAdapterDataObserver(insertToTopListener)
 
-        }
-
+        }//AppInspector давно не работает писал об этом  2 раза игнор  Андроид студио нужно обновить, это проблема совместимости жирафа с 34 апи, +Там либо апи понижать, либо библиотеку какую-то, но не помню точно какую+
 
 
         lifecycleScope.launchWhenCreated {
@@ -222,18 +228,15 @@ class FeedFragment : Fragment() {
             if (state.error) {
                 Snackbar.make(binding.root, R.string.network_error, Snackbar.LENGTH_LONG)
                     .setAction(R.string.retry) {
-                       adapter.refresh()
+                        adapter.refresh()
                     }.setAnchorView(binding.fab).show()
             }
-            binding.progress.isVisible = state.loading
-            binding.swipeRefresh.isRefreshing = state.loading
-
         }
 
         lifecycleScope.launchWhenCreated {
             adapter.loadStateFlow.collectLatest {
                 binding.swipeRefresh.isRefreshing =
-                    it.refresh is LoadState.Loading || it.append is LoadState.Loading || it.prepend is LoadState.Loading
+                    it.refresh is LoadState.Loading
             }
         }
 
