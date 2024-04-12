@@ -49,6 +49,8 @@
     <string name="Button_pressed">Button pressed</string>
     <string name="network_error">network error</string>
     <string name="retry">retry</string>
-
+    <string name="today">today</string>
+    <string name="yesterday">yesterday</string>
+    <string name="last_week">last week</string>
 
 </resources>
