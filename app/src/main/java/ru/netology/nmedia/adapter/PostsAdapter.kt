@@ -16,6 +16,7 @@ import ru.netology.nmedia.dto.Ad
 import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.dto.TimeCheck
+import ru.netology.nmedia.dto.TimeType
 import ru.netology.nmedia.view.load
 
 
@@ -34,7 +35,7 @@ class PostsAdapter(
         when (getItem(position)) {
             is Ad -> R.layout.card_ad
             is Post -> R.layout.card_post
-            is  TimeCheck -> R.layout.timestamp_card
+            is TimeCheck -> R.layout.timestamp_card
             null -> error("unknown item type:  ${getItem(position)}")
         }
 
@@ -52,9 +53,10 @@ class PostsAdapter(
                     CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 PostViewHolder(binding, onInteractionListener)
             }
+
             R.layout.timestamp_card -> {
                 val binding =
-                TimestampCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                    TimestampCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 TimeCheckViewHolder(binding)
             }
 
@@ -65,8 +67,8 @@ class PostsAdapter(
 
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when( val item = getItem(position)){
-            is Ad -> (holder as?  AdViewHolder)?.bind(item)
+        when (val item = getItem(position)) {
+            is Ad -> (holder as? AdViewHolder)?.bind(item)
             is Post -> (holder as? PostViewHolder)?.bind(item)
             is TimeCheck -> (holder as? TimeCheckViewHolder)?.bind(item)
             null -> error("unknown item type")
@@ -86,10 +88,15 @@ class AdViewHolder(
 class TimeCheckViewHolder(
     private val timeBinding: TimestampCardBinding,
 ) : RecyclerView.ViewHolder(timeBinding.root) {
-    fun bind(time : TimeCheck) {
-        timeBinding.timePub.text = time.timestamp
+    fun bind(time: TimeCheck) {
+        timeBinding.timePub.setText(
+            when (time.timeType) {
+                TimeType.TODAY -> R.string.today
+                TimeType.YESTERDAY -> R.string.yesterday
+                TimeType.WEEK_AGO -> R.string.week_ago
+            }
+        )
     }
-
 }
 
 class PostViewHolder(

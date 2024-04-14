@@ -24,9 +24,16 @@ data class Ad(
 ) : FeedItem
 
 data class TimeCheck(
-    override val id: Long,
-    val timestamp: String
-) : FeedItem
+    val timeType: TimeType,
+) : FeedItem {
+    override val id: Long = timeType.ordinal.toLong()
+}
+
+enum class TimeType {
+    TODAY,
+    YESTERDAY,
+    WEEK_AGO,
+}
 
 data class Attachment(
     val url: String,
