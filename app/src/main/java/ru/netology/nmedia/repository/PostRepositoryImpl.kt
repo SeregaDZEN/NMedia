@@ -19,13 +19,11 @@ import ru.netology.nmedia.auth.AuthState
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dao.PostRemoteKeyDao
 import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.dto.Ad
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.dto.TimeCheck
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.NetworkError
@@ -35,7 +33,6 @@ import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 
 @Singleton
@@ -45,6 +42,8 @@ class PostRepositoryImpl @Inject constructor(
     db: AppDb,
     postRemoteKeyDao: PostRemoteKeyDao,
 ) : PostRepository {
+
+    private val timeSeparatorFactory = TimeSeparatorFactory(System.currentTimeMillis() / 1_000)
 
     @OptIn(ExperimentalPagingApi::class)
     override val dataRepo: Flow<PagingData<FeedItem>> = Pager(
@@ -57,35 +56,9 @@ class PostRepositoryImpl @Inject constructor(
     ).flow
         .map { pagingData ->
             pagingData.map(PostEntity::toDto)
-                .insertSeparators { before, after ->
-                    val now = System.currentTimeMillis()
-                    val oneDayInMillis = 24 * 60 * 60 * 1000
-                    val twoDayInMillis = oneDayInMillis * 2
-
-                    when {
-                        before == null && after is Post -> {
-                            // Для первого элемента в списке проверяем, нужно ли вставить разделитель
-                            when {
-                                now - after.published <= oneDayInMillis -> TimeCheck(id = Random.nextLong(), timestamp = "Сегодня")
-                                now - after.published <= twoDayInMillis-> TimeCheck(id = Random.nextLong(), timestamp = "Вчера")
-                                else -> TimeCheck(id = Random.nextLong(), timestamp = "На прошлой неделе")
-                            }
-                        }
-                        before is Post && after is Post -> {
-                            // Для элементов в середине списка вставляем разделитель, если дата изменилась
-                            if (before.published / oneDayInMillis != after.published / oneDayInMillis) {
-                                if (now - after.published <= oneDayInMillis) TimeCheck(id = Random.nextLong(), timestamp = "Сегодня")
-                                if (now - after.published <= twoDayInMillis) TimeCheck(id = Random.nextLong(), timestamp = "Вчера")
-                                else  TimeCheck(id = Random.nextLong(), timestamp = "На прошлой неделе")
-                            } else error("")
-                        }
-
-                        else -> error("")
-                    }
+                .insertSeparators(TerminalSeparatorType.SOURCE_COMPLETE) { before, after ->
+                    timeSeparatorFactory.create(before, after)
                 }
-
-
-
         }
 
 
