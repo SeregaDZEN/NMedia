@@ -48,8 +48,5 @@
     <string name="network_error">ошибка сети</string>
     <string name="retry">повторить</string>
     <string name="sign_in">войти</string>
-    <string name="today">сегодня</string>
-    <string name="yesterday">вчера</string>
-    <string name="last_week">на прошлой неделе</string>
 
 </resources>

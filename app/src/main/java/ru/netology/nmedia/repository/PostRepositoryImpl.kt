@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import ru.netology.nmedia.R
 import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.auth.AuthState
 import ru.netology.nmedia.dao.PostDao
@@ -32,7 +31,6 @@ import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import ru.netology.nmedia.model.PhotoModel
-import ru.netology.nmedia.util.ResourceService
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
@@ -46,7 +44,6 @@ class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
     db: AppDb,
     postRemoteKeyDao: PostRemoteKeyDao,
-    private val resourceService: ResourceService
 ) : PostRepository {
 
     @OptIn(ExperimentalPagingApi::class)
@@ -60,45 +57,36 @@ class PostRepositoryImpl @Inject constructor(
     ).flow
         .map { pagingData ->
             pagingData.map(PostEntity::toDto)
-                .insertSeparators(TerminalSeparatorType.SOURCE_COMPLETE) { before, after ->
+                .insertSeparators { before, after ->
+                    val now = System.currentTimeMillis()
+                    val oneDayInMillis = 24 * 60 * 60 * 1000
+                    val twoDayInMillis = oneDayInMillis * 2
+
                     when {
                         before == null && after is Post -> {
-                            // Для первого элемента в списке выведем разделитель согласно тому когда он написан
-                            TimeCheck(
-                                id = Random.nextLong(),
-                                timestamp = after.published.timestamp()
-                            )
+                            // Для первого элемента в списке проверяем, нужно ли вставить разделитель
+                            when {
+                                now - after.published <= oneDayInMillis -> TimeCheck(id = Random.nextLong(), timestamp = "Сегодня")
+                                now - after.published <= twoDayInMillis-> TimeCheck(id = Random.nextLong(), timestamp = "Вчера")
+                                else -> TimeCheck(id = Random.nextLong(), timestamp = "На прошлой неделе")
+                            }
                         }
-
                         before is Post && after is Post -> {
-                            // Для элементов в середине списка вставляем разделитель, если временные рамки изменились
-                            if (before.published.timestamp() != after.published.timestamp()) {
-                                TimeCheck(
-                                    id = Random.nextLong(),
-                                    timestamp = after.published.timestamp()
-                                )
-                            } else null
+                            // Для элементов в середине списка вставляем разделитель, если дата изменилась
+                            if (before.published / oneDayInMillis != after.published / oneDayInMillis) {
+                                if (now - after.published <= oneDayInMillis) TimeCheck(id = Random.nextLong(), timestamp = "Сегодня")
+                                if (now - after.published <= twoDayInMillis) TimeCheck(id = Random.nextLong(), timestamp = "Вчера")
+                                else  TimeCheck(id = Random.nextLong(), timestamp = "На прошлой неделе")
+                            } else error("")
                         }
 
-                        else -> null
+                        else -> error("")
                     }
-                } .insertSeparators(TerminalSeparatorType.FULLY_COMPLETE) { previous, _ ->
-                    if (previous?.id?.rem(other = 7) == 0L) {
-                        Ad(Random.nextLong(),  "figma.jpg")
-                    } else null
                 }
-        }
 
-    private fun Long.timestamp(): String {
-        val oneDayInSec = 24 * 60 * 60
-        val nowDay = (System.currentTimeMillis() / 1000) / oneDayInSec
-        val inputDay = this / oneDayInSec
-        return when (nowDay - inputDay) {
-            0L -> resourceService.getString(R.string.today)
-            1L -> resourceService.getString(R.string.yesterday)
-            else -> resourceService.getString(R.string.last_week)
+
+
         }
-    }
 
 
     override suspend fun authenticate(login: String, password: String): AuthState {
